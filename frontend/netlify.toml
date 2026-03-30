@@ -1,0 +1,36 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+
+# Proxy API to backend (avoids CORS in production)
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://smart-displays-api.onrender.com/api/:splat"
+  status = 200
+  force  = true
+
+# TV display page
+[[redirects]]
+  from   = "/tv/*"
+  to     = "/tv.html"
+  status = 200
+
+[[headers]]
+  for = "/tv/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/tv.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# SPA fallback
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

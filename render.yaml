@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: smart-displays-api
+    env: python
+    rootDir: smart_displays/backend
+    region: frankfurt
+    plan: starter
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn server:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        sync: false # User must set this in Render Dashboard (Supabase PostgreSQL URL)
+      - key: SECRET_KEY
+        generateValue: true # Generates a secure random JWT signing key
+      - key: CORS_ORIGINS
+        value: "https://displays.getapp.ro,http://localhost:3001"

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+    <meta http-equiv="cache-control" content="no-cache,no-store,must-revalidate">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="refresh" content="540">
+
+    <title>Screen Media</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000
+        }
+
+        /* ASBL Spike pixel - 2x2px hidden element used to reset OLED APL timers */
+        /* Replaces full-screen invert (which caused visible flicker on slow TV GPUs) */
+        #asbl-pixel {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 2px;
+            height: 2px;
+            background: #000;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        #asbl-pixel.spike {
+            background: #fff;
+        }
+
+        #slides {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out
+        }
+
+        .slide.active {
+            opacity: 1
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block
+        }
+
+        .slide video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block
+        }
+
+        #loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #333;
+            font: 16px Arial;
+            display: none
+        }
+
+        #err {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #f44;
+            font: 20px Arial;
+            display: none
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ANTI-SCREENSAVER: Full-screen video layer (The ONLY known fix for LG WebOS OLEDs) -->
+    <!-- Official WebOS documentation: "Screensaver will NOT appear when a video is playing full screen (100% viewport, position 0,0)." -->
+    <video id="hw-video" src="/keepalive.mp4" autoplay loop muted playsinline webkit-playsinline
+        style="position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:2;opacity:0;pointer-events:none;"></video>
+    <!-- ASBL pixel spike element — 2x2px white flash every 2.5min resets OLED APL hardware dimming timer -->
+    <div id="asbl-pixel"></div>
+
+    <div id="rotation-wrapper" style="position: absolute; width:100%; height:100%; top:0; left:0; overflow:hidden;">
+        <div id="slides"></div>
+    </div>
+    <div id="loader">⏳</div>
+    <div id="err"></div>
+    <script>
+        // Parse slug from URL: /tv/SLUG or /display/SLUG
+        var path = window.location.pathname;
+        var parts = path.split('/');
+        var slug = parts[parts.length - 1] || parts[parts.length - 2];
+
+        if (!slug || slug === 'tv' || slug === 'display') {
+            document.getElementById('err').style.display = 'block';
+            document.getElementById('err').textContent = 'No screen slug in URL';
+        } else {
+            loadScreen(slug);
+        }
+
+        function loadScreen(slug) {
+            document.getElementById('loader').style.display = 'block';
+
+            // API URL - relative to use Vite proxy or Netlify redirects
+            var API = '/api';
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', API + '/display/' + slug);
+            xhr.onload = function () {
+                document.getElementById('loader').style.display = 'none';
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        renderScreen(data);
+                        // heartbeat
+                        if (data.screen && data.screen.id) {
+                            var screenId = data.screen.id;
+                            function sendHeartbeat() {
+                                var hb = new XMLHttpRequest();
+                                hb.open('POST', API + '/screens/' + screenId + '/heartbeat');
+                                hb.send();
+                            }
+                            // Send immediately
+                            sendHeartbeat();
+                            // Then every 60 seconds to stay 'online' (server timeout is 2 min)
+                            setInterval(sendHeartbeat, 60000);
+                        }
+                    } catch (e) {
+                        showError('Parse error');
+                    }
+                } else if (xhr.status === 403) {
+                    showError('Cod securitate necesar');
+                } else {
+                    showError('Ecran negăsit: ' + slug);
+                }
+            };
+            xhr.onerror = function () {
+                document.getElementById('loader').style.display = 'none';
+                showError('Network error - retrying...');
+                setTimeout(function () { loadScreen(slug); }, 5000);
+            };
+            xhr.send();
+        }
+
+        function showError(msg) {
+            document.getElementById('err').style.display = 'block';
+            document.getElementById('err').textContent = msg;
+        }
+
+        // Not using supabase proxy anymore, using direct URLs from our backend
+        function proxyUrl(url) {
+            return url;
+        }
+
+        var currentSlide = 0;
+        var slideTimer = null;
+        var allSlides = [];
+
+        function renderScreen(data) {
+            var wrapper = document.getElementById('rotation-wrapper');
+            var container = document.getElementById('slides');
+            
+            // TV Rotation Logic - Bulletproof Pixel Matrix
+            var rawOrientation = data.screen && data.screen.orientation;
+            var rotation = 0;
+            if (rawOrientation === 'portrait') {
+                rotation = 90;
+            } else if (rawOrientation === 'landscape') {
+                rotation = 0;
+            } else {
+                rotation = parseInt(rawOrientation || '0', 10);
+                if (isNaN(rotation)) rotation = 0;
+            }
+
+            if (rotation === 90) {
+                // Rotate 90 degrees right (Portrait hanging)
+                wrapper.style.transform = 'rotate(90deg)';
+                wrapper.style.transformOrigin = 'top left';
+                wrapper.style.width = '1080px';
+                wrapper.style.height = '1920px';
+                wrapper.style.top = '0px';
+                wrapper.style.left = '1920px'; // Shift back into view
+            } else if (rotation === 270 || rotation === -90) {
+                // Rotate 270 degrees left (Portrait reverse hanging)
+                wrapper.style.transform = 'rotate(270deg)';
+                wrapper.style.transformOrigin = 'top left';
+                wrapper.style.width = '1080px';
+                wrapper.style.height = '1920px';
+                wrapper.style.top = '1080px';
+                wrapper.style.left = '0px';
+            } else if (rotation === 180) {
+                // Upside down
+                wrapper.style.transform = 'rotate(180deg)';
+                wrapper.style.transformOrigin = 'center center';
+                wrapper.style.width = '1920px';
+                wrapper.style.height = '1080px';
+                wrapper.style.top = '0px';
+                wrapper.style.left = '0px';
+            } else {
+                // Normal Landscape
+                wrapper.style.transform = 'none';
+                wrapper.style.width = '100%';
+                wrapper.style.height = '100%';
+                wrapper.style.top = '0px';
+                wrapper.style.left = '0px';
+            }
+
+            var items = [];
+            
+            // Rebuild items list from new API response
+            if (data.playlist && data.playlist.items) {
+                var pItems = data.playlist.items;
+                for (var i = 0; i < pItems.length; i++) {
+                    items.push({
+                        type: pItems[i].type,
+                        url: pItems[i].file_url || pItems[i].url || '', // We need to make sure the backend provides file_url
+                        duration: pItems[i].duration || 10
+                    });
+                }
+            } else if (data.content && data.content.file_url) {
+                items.push({
+                    type: data.content.type,
+                    url: data.content.file_url,
+                    duration: data.content.duration || 10
+                });
+            }
+
+            if (items.length === 0) {
+                showError('Niciun conținut');
+                return;
+            }
+
+            allSlides = items;
+
+            // Logo Logic
+            var screenData = data.screen;
+            if (screenData && screenData.logo_enabled && screenData.logo_url) {
+                var logoDiv = document.createElement('div');
+                logoDiv.style.position = 'absolute';
+                logoDiv.style.zIndex = '40';
+                logoDiv.style.pointerEvents = 'none';
+                
+                var pos = screenData.logo_position || 'top-right';
+                var size = screenData.logo_size || 'md';
+                
+                if (pos === 'top-left') { logoDiv.style.top = '12px'; logoDiv.style.left = '12px'; }
+                else if (pos === 'top-center') { logoDiv.style.top = '12px'; logoDiv.style.left = '50%'; logoDiv.style.transform = 'translateX(-50%)'; }
+                else if (pos === 'top-right') { logoDiv.style.top = '12px'; logoDiv.style.right = '12px'; }
+                else if (pos === 'center-left') { logoDiv.style.top = '50%'; logoDiv.style.left = '12px'; logoDiv.style.transform = 'translateY(-50%)'; }
+                else if (pos === 'center') { logoDiv.style.top = '50%'; logoDiv.style.left = '50%'; logoDiv.style.transform = 'translate(-50%, -50%)'; }
+                else if (pos === 'center-right') { logoDiv.style.top = '50%'; logoDiv.style.right = '12px'; logoDiv.style.transform = 'translateY(-50%)'; }
+                else if (pos === 'bottom-left') { logoDiv.style.bottom = '12px'; logoDiv.style.left = '12px'; }
+                else if (pos === 'bottom-center') { logoDiv.style.bottom = '12px'; logoDiv.style.left = '50%'; logoDiv.style.transform = 'translateX(-50%)'; }
+                else if (pos === 'bottom-right') { logoDiv.style.bottom = '12px'; logoDiv.style.right = '12px'; }
+                
+                var dim = '3.5vw';
+                if (size === 'sm') dim = '2vw';
+                else if (size === 'lg') dim = '5vw';
+                else if (size === 'xl') dim = '7vw';
+                
+                logoDiv.style.width = dim;
+                logoDiv.style.height = dim;
+                
+                var logoImg = document.createElement('img');
+                logoImg.src = proxyUrl(screenData.logo_url);
+                logoImg.style.width = '100%';
+                logoImg.style.height = '100%';
+                logoImg.style.objectFit = 'contain';
+                logoImg.style.filter = 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))';
+                
+                logoDiv.appendChild(logoImg);
+                document.body.appendChild(logoDiv);
+            }
+
+            var syncInfo = data.sync_info;
+            var isMatrix = syncInfo && syncInfo.sync_type && syncInfo.sync_type.indexOf('matrix') === 0;
+
+            // Create slide elements
+            for (var s = 0; s < items.length; s++) {
+                var div = document.createElement('div');
+                div.className = 'slide' + (s === 0 ? ' active' : '');
+                div.id = 'slide-' + s;
+
+                // Inner container for Matrix Sync offset
+                var innerContainer = document.createElement('div');
+                if (isMatrix) {
+                    var cols = syncInfo.grid_cols || (syncInfo.total_screens === 3 ? 3 : syncInfo.total_screens === 4 ? 2 : 1);
+                    var rows = syncInfo.grid_rows || (syncInfo.total_screens === 4 ? 2 : 1);
+                    var myIndex = syncInfo.my_index || 0;
+                    var myRow = Math.floor(myIndex / cols);
+                    var myCol = myIndex % cols;
+
+                    innerContainer.style.width = (cols * 100) + '%';
+                    innerContainer.style.height = (rows * 100) + '%';
+                    innerContainer.style.transform = 'translate3d(-' + ((myCol * 100) / cols) + '%, -' + ((myRow * 100) / rows) + '%, 0)';
+                    innerContainer.style.position = 'absolute';
+                    innerContainer.style.left = '0';
+                    innerContainer.style.top = '0';
+                    innerContainer.style.transformOrigin = 'top left';
+                } else {
+                    innerContainer.style.width = '100%';
+                    innerContainer.style.height = '100%';
+                }
+
+                var fitMode = data.screen && data.screen.sync_fit_mode ? data.screen.sync_fit_mode : 'cover';
+                // map stretch to fill, fit to contain
+                if (fitMode === 'stretch') fitMode = 'fill';
+                if (fitMode === 'fit') fitMode = 'contain';
+
+                if (items[s].type === 'video') {
+                    var vid = document.createElement('video');
+                    vid.src = items[s].url;
+                    vid.muted = true;
+                    vid.loop = true;
+                    vid.autoplay = true;
+                    vid.setAttribute('playsinline', '');
+                    vid.style.width = '100%';
+                    vid.style.height = '100%';
+                    vid.style.objectFit = fitMode;
+                    innerContainer.appendChild(vid);
+                } else {
+                    var img = document.createElement('img');
+                    img.src = items[s].url;
+                    img.alt = '';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = fitMode;
+                    innerContainer.appendChild(img);
+                }
+                
+                div.appendChild(innerContainer);
+                container.appendChild(div);
+            }
+
+            // Pre-load all images before starting the slideshow
+            var imagesToLoad = items.filter(function(it) { return it.type === 'image'; });
+            var loaded = 0;
+            var total = imagesToLoad.length;
+
+            function startSlideshow() {
+                if (items.length > 1) {
+                    nextSlide();
+                } else if (items.length === 1 && items[0].type === 'image') {
+                    // Force the single image to be active
+                    document.getElementById('slide-0').className = 'slide active';
+                }
+            }
+
+            if (total === 0) {
+                startSlideshow();
+            } else {
+                for (var pi = 0; pi < imagesToLoad.length; pi++) {
+                    (function(src) {
+                        var preImg = new Image();
+                        preImg.onload = preImg.onerror = function() {
+                            loaded++;
+                            if (loaded >= total) startSlideshow();
+                        };
+                        preImg.src = src;
+                    })(imagesToLoad[pi].url);
+                }
+            }
+
+            // Anti-standby: The "Safe" Combo (Meta Refresh + 100% Transparent Video + WakeLock)
+
+            // Layer 0: 9-Minute Hard Navigation Refresh
+            // This replicates the confirmed working Anti-Standby code from DisplayScreen.js
+            setInterval(function() {
+                var currentUrl = new URL(window.location.href);
+                // Timestamp bypasses the internal TV browser cache
+                currentUrl.searchParams.set('t', Date.now().toString());
+                window.location.replace(currentUrl.toString());
+            }, 9 * 60 * 1000); // 9 minutes (540,000 ms) beats the LG 10/15 min timer
+
+            // Layer 1: WakeLock API
+            function reqWakeLock() {
+                try {
+                    if ('wakeLock' in navigator) {
+                        navigator.wakeLock.request('screen').catch(function () { });
+                    }
+                } catch (e) { }
+            }
+            reqWakeLock();
+            document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'visible') reqWakeLock();
+            });
+
+            // Layer 2: Ensure the full-screen transparent video is playing
+            try {
+                var hwVideo = document.getElementById('hw-video');
+                var playPromise = hwVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(function (error) {
+                        // Autoplay was prevented. Will be triggered by any remote click.
+                    });
+                }
+
+                // Retry play every 10s to ensure it stays active
+                setInterval(function () {
+                    if (hwVideo && hwVideo.paused) {
+                        hwVideo.play().catch(function () { });
+                    }
+                }, 10000);
+
+                // Play on any user interaction with the remote
+                document.addEventListener('click', function () { hwVideo.play().catch(function () { }); });
+                document.addEventListener('keydown', function () { hwVideo.play().catch(function () { }); });
+                document.addEventListener('mousemove', function () { hwVideo.play().catch(function () { }); });
+            } catch (e) { }
+
+            // Layer 3: ASBL APL Pixel Spike (every 2.5 minutes)
+            // Flips a 2x2px corner pixel white→black to reset OLED APL hardware dimming timers
+            // Uses a tiny hidden element instead of full-screen invert to avoid visible flicker
+            var asblPixel = document.getElementById('asbl-pixel');
+            setInterval(function () {
+                try {
+                    if (asblPixel) {
+                        asblPixel.classList.add('spike');
+                        setTimeout(function () {
+                            asblPixel.classList.remove('spike');
+                        }, 200);
+                    }
+                } catch (e) { }
+            }, 150000);
+
+            // Re-fetch data every 5 minutes (in case content changed)
+            setInterval(function () {
+                loadScreen(slug);
+            }, 300000);
+        }
+
+        function nextSlide() {
+            var rawDuration = allSlides[currentSlide] && allSlides[currentSlide].duration;
+            var duration = Math.max(5, Number(rawDuration) || 10); // Minimum 5s — prevents instant black flash
+            slideTimer = setTimeout(function () {
+                var oldSlide = document.getElementById('slide-' + currentSlide);
+                if (oldSlide) oldSlide.className = 'slide';
+
+                currentSlide = (currentSlide + 1) % allSlides.length;
+
+                var newSlide = document.getElementById('slide-' + currentSlide);
+                if (newSlide) newSlide.className = 'slide active';
+
+                nextSlide();
+            }, duration * 1000);
+        }
+    </script>
+</body>
+
+</html>
