@@ -22,7 +22,7 @@ const BLANK_SCREEN = {
   custom_text_size: 'md', custom_text_color: '#FFFFFF', custom_text_has_background: false,
 };
 
-const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 function Modal({ title, onClose, children }) {
   return (
