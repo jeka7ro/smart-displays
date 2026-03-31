@@ -22,6 +22,13 @@ export default function Onboarding() {
     if (user?.is_onboarded) navigate('/dashboard', { replace: true });
   }, [user, navigate]);
 
+  const handleError = (err, fallback) => {
+    const detail = err.response?.data?.detail;
+    if (typeof detail === 'string') toast.error(detail);
+    else if (Array.isArray(detail)) toast.error('Eroare: Date invalide sau lipsă.');
+    else toast.error(fallback);
+  };
+
   const doStep1 = async (e) => {
     e.preventDefault();
     if (!locationName.trim()) return toast.error('Adaugă un nume locației.');
@@ -31,7 +38,7 @@ export default function Onboarding() {
       setCreatedLocationId(res.data.id);
       setStep(2);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Eroare locație');
+      handleError(err, 'Eroare la creare locație');
     } finally { setLoading(false); }
   };
 
@@ -40,11 +47,14 @@ export default function Onboarding() {
     if (!screenName.trim()) return toast.error('Adaugă un nume ecranului.');
     setLoading(true);
     try {
-      const res = await screens.create({ name: screenName, location_id: createdLocationId, resolution: '1920x1080' });
+      const base = screenName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      const uniqueSlug = base ? `${base}-${Math.floor(Math.random() * 1000)}` : `ecran-${Math.floor(Math.random() * 10000)}`;
+      
+      const res = await screens.create({ name: screenName, slug: uniqueSlug, location_id: createdLocationId, resolution: '1920x1080' });
       setGeneratedSlug(res.data.slug);
       setStep(3);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Eroare creare ecran');
+      handleError(err, 'Eroare generare ecran');
     } finally { setLoading(false); }
   };
 
@@ -56,7 +66,7 @@ export default function Onboarding() {
       navigate('/dashboard');
       toast.success('Gata! Meniul complet este activ.');
     } catch (err) {
-      toast.error("Eroare la finalizare");
+      handleError(err, 'Eroare la finalizare');
     } finally { setLoading(false); }
   };
 
