@@ -6,13 +6,22 @@ import { toast } from 'sonner';
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-surface-800 rounded-2xl border border-white/[0.08] w-full max-w-md shadow-2xl">
-        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-          <h2 className="font-semibold text-white">{title}</h2>
-          <button onClick={onClose}><X className="w-4 h-4 text-white/40" /></button>
+      <div className="absolute inset-0 backdrop-blur-sm" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose} />
+      <div className="relative w-full max-w-md animate-scale-in" style={{
+        background: 'rgba(12,15,30,0.97)',
+        borderRadius: 28,
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
+        backdropFilter: 'blur(24px)',
+      }}>
+        <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <h2 className="font-bold text-white">{title}</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}>
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );
@@ -148,19 +157,30 @@ function BrandsSection() {
       {loading ? <div className="text-white/30 text-sm text-center py-6"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>
       : list.length === 0 ? <div className="text-white/30 text-sm text-center py-6">Niciun brand configurat.</div>
       : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {list.map(b => (
-            <div key={b.id} className="p-3 rounded-xl border border-white/[0.06] bg-surface-700 flex items-center gap-3">
+            <div key={b.id} className="sd-card p-3 flex items-center gap-3 hover:scale-[1.01] transition-all duration-200">
               {b.logo_url
-                ? <img src={b.logo_url} alt={b.name} className="w-10 h-10 object-contain rounded bg-white/5" />
-                : <div className="w-10 h-10 rounded bg-brand-600/20 flex items-center justify-center text-brand-400 font-bold text-sm">{b.name[0]}</div>
+                ? <img src={b.logo_url} alt={b.name} className="w-10 h-10 object-contain rounded-xl" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                : <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm text-white"
+                    style={{ background: 'linear-gradient(135deg,#5b4fff,#7c3aed)' }}>{b.name[0]}</div>
               }
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-white truncate">{b.name}</div>
+                <div className="text-sm font-semibold text-white truncate">{b.name}</div>
               </div>
               <div className="flex gap-1">
-                <button onClick={() => openEdit(b)} className="p-1 rounded text-white/30 hover:text-white"><Pencil className="w-3 h-3" /></button>
-                <button onClick={() => del(b)} className="p-1 rounded text-red-400/40 hover:text-red-400"><Trash2 className="w-3 h-3" /></button>
+                <button onClick={() => openEdit(b)} className="p-1.5 rounded-xl transition-all"
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'white'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+                  <Pencil className="w-3 h-3" />
+                </button>
+                <button onClick={() => del(b)} className="p-1.5 rounded-xl transition-all"
+                  style={{ color: 'rgba(239,68,68,0.4)' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#f87171'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(239,68,68,0.4)'}>
+                  <Trash2 className="w-3 h-3" />
+                </button>
               </div>
             </div>
           ))}
@@ -185,10 +205,10 @@ function BrandsSection() {
 
 export default function Locations() {
   return (
-    <div className="space-y-5 animate-slide-up">
+    <div className="space-y-5 animate-slide-up max-w-4xl">
       <div>
-        <h1 className="text-xl font-bold text-white">Locații & Branduri</h1>
-        <p className="text-white/40 text-sm mt-0.5">Gestionează locațiile fizice și brandurile asociate ecranelor</p>
+        <h1 className="text-2xl font-black text-white">Locații &amp; Branduri</h1>
+        <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Gestionează locațiile fizice și brandurile asociate ecranelor</p>
       </div>
       <LocationsSection />
       <BrandsSection />

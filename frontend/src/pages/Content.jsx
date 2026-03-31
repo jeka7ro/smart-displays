@@ -39,18 +39,27 @@ function UploadArea({ onUploaded }) {
     <div className="sd-card">
       <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2"><Upload className="w-4 h-4 text-brand-400" />Încarcă fișier nou</h3>
       {!file ? (
-        <div
+    <div
           onDragOver={e => { e.preventDefault(); setDrag(true); }}
           onDragLeave={() => setDrag(false)}
           onDrop={e => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files[0]; if (f) pick(f); }}
           onClick={() => inputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200
-                       ${drag ? 'border-brand-500 bg-brand-500/10' : 'border-white/10 hover:border-white/20 hover:bg-white/[0.02]'}`}
+          className="rounded-2xl p-10 text-center cursor-pointer transition-all duration-200"
+          style={{
+            border: `2px dashed ${drag ? 'rgba(99,87,255,0.6)' : 'rgba(255,255,255,0.08)'}`,
+            background: drag ? 'rgba(99,87,255,0.06)' : 'rgba(255,255,255,0.02)',
+          }}
         >
-          <Upload className="w-8 h-8 text-white/20 mx-auto mb-2" />
-          <p className="text-sm text-white/50">Drag & drop sau <span className="text-brand-400">alege fișier</span></p>
-          <p className="text-xs text-white/25 mt-1">MP4, JPG, PNG, GIF · max 500 MB</p>
-          <input ref={inputRef} type="file" accept="video/*,image/*" className="hidden" onChange={e => { if (e.target.files[0]) pick(e.target.files[0]); }} />
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"
+            style={{ background: 'rgba(99,87,255,0.1)', border: '1px solid rgba(99,87,255,0.15)' }}>
+            <Upload className="w-5 h-5" style={{ color: '#818cf8' }} />
+          </div>
+          <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            Drag & drop sau <span style={{ color: '#818cf8' }}>alege fișier</span>
+          </p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>MP4, JPG, PNG, GIF · max 500 MB</p>
+          <input ref={inputRef} type="file" accept="video/*,image/*" className="hidden"
+            onChange={e => { if (e.target.files[0]) pick(e.target.files[0]); }} />
         </div>
       ) : (
         <div className="space-y-3">
@@ -144,7 +153,11 @@ export default function Content() {
         <div className="flex gap-1">
           {['all','video','image'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filter === f ? 'bg-brand-600 text-white' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>
+              className="px-3 py-1.5 rounded-2xl text-xs font-semibold transition-all"
+              style={filter === f
+                ? { background: 'linear-gradient(135deg,#5b4fff,#7c3aed)', color: 'white', boxShadow: '0 4px 12px rgba(91,79,255,0.3)' }
+                : { background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.06)' }
+              }>
               {f === 'all' ? 'Toate' : f === 'video' ? '🎬 Video' : '🖼️ Imagini'}
             </button>
           ))}
@@ -159,11 +172,12 @@ export default function Content() {
           <p className="text-white/40 text-sm">{search ? 'Niciun rezultat' : 'Nu ai conținut încărcat.'}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           {filtered.map(c => (
-            <div key={c.id} className="sd-card p-3 flex flex-col gap-2 group hover:border-white/10 transition-all">
+            <div key={c.id} className="sd-card p-3 flex flex-col gap-2 group hover:scale-[1.02] transition-all duration-200" style={{ overflow: 'hidden' }}>
               {/* Thumbnail */}
-              <div className="aspect-video rounded-lg bg-surface-700 overflow-hidden flex items-center justify-center relative">
+              <div className="aspect-video rounded-2xl overflow-hidden flex items-center justify-center relative"
+                style={{ background: 'rgba(255,255,255,0.04)' }}>
                 {c.thumbnail_url ? (
                   <img src={c.thumbnail_url} alt={c.title} className="w-full h-full object-cover" />
                 ) : c.type === 'video' ? (
