@@ -4,11 +4,11 @@ import { Tv, Plus, Pencil, Trash2, Wifi, WifiOff, Copy, ExternalLink, X, Loader2
 import { toast } from 'sonner';
 
 const EFFECTS_LIST = [
-  { key: 'snow_enabled',             label: '❄️ Ninsoare',    intensity: 'snow_intensity' },
-  { key: 'sakura_enabled',           label: '🌸 Sakura',      intensity: 'sakura_intensity' },
-  { key: 'valentine_hearts_enabled', label: '❤️ Inimi',       intensity: 'valentine_hearts_intensity' },
-  { key: 'parallax_enabled',         label: '🌊 Parallax'  },
-  { key: 'steam_enabled',            label: '💨 Aburi'    },
+  { key: 'snow_enabled',             label: '❄️ Ninsoare' },
+  { key: 'sakura_enabled',           label: '🌸 Sakura' },
+  { key: 'valentine_hearts_enabled', label: '❤️ Inimi' },
+  { key: 'parallax_enabled',         label: '🌊 Parallax' },
+  { key: 'steam_enabled',            label: '💨 Aburi' },
 ];
 
 const BLANK_SCREEN = {
@@ -27,13 +27,23 @@ const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-surface-800 rounded-2xl border border-white/[0.08] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-          <h2 className="font-semibold text-white">{title}</h2>
-          <button onClick={onClose} className="text-white/40 hover:text-white"><X className="w-4 h-4" /></button>
+      <div className="absolute inset-0 backdrop-blur-sm" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose} />
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scale-in" style={{
+        background: 'rgba(12,15,30,0.97)',
+        borderRadius: 28,
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
+        backdropFilter: 'blur(24px)',
+      }}>
+        <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <h2 className="font-bold text-white">{title}</h2>
+          <button onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+            style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}>
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );
@@ -86,13 +96,13 @@ function AssignModal({ screen, onClose, contentList, playlistList }) {
 }
 
 export default function Screens() {
-  const [list, setList]           = useState([]);
+  const [list, setList]                 = useState([]);
   const [locationList, setLocationList] = useState([]);
   const [contentList, setContentList]   = useState([]);
   const [playlistList, setPlaylistList] = useState([]);
   const [brandList, setBrandList]       = useState([]);
   const [loading, setLoading]           = useState(true);
-  const [modal, setModal]               = useState(null); // 'add' | 'edit' | 'assign'
+  const [modal, setModal]               = useState(null);
   const [selected, setSelected]         = useState(null);
   const [form, setForm]                 = useState(BLANK_SCREEN);
   const [saving, setSaving]             = useState(false);
@@ -112,8 +122,8 @@ export default function Screens() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openAdd  = () => { setForm(BLANK_SCREEN); setSelected(null); setModal('add'); };
-  const openEdit = (s) => { setForm({ ...BLANK_SCREEN, ...s }); setSelected(s); setModal('edit'); };
+  const openAdd    = () => { setForm(BLANK_SCREEN); setSelected(null); setModal('add'); };
+  const openEdit   = (s) => { setForm({ ...BLANK_SCREEN, ...s }); setSelected(s); setModal('edit'); };
   const openAssign = (s) => { setSelected(s); setModal('assign'); };
 
   const save = async () => {
@@ -135,7 +145,7 @@ export default function Screens() {
     catch { toast.error('Eroare la ștergere'); }
   };
 
-  const tvUrl = (slug) => `${BACKEND}/tv/${slug}`;
+  const tvUrl   = (slug) => `${BACKEND}/tv/${slug}`;
   const filtered = list.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
     s.slug.toLowerCase().includes(search.toLowerCase()) ||
@@ -143,67 +153,111 @@ export default function Screens() {
   );
 
   return (
-    <div className="space-y-5 animate-slide-up">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 animate-slide-up max-w-5xl">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2"><Tv className="w-5 h-5 text-brand-400" /> Ecrane</h1>
-          <p className="text-white/40 text-sm mt-0.5">{list.length} ecrane configurate</p>
+          <h1 className="text-2xl font-black text-white flex items-center gap-2">
+            <Tv className="w-6 h-6" style={{ color: '#818cf8' }} /> Ecrane
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            {list.length} ecrane configurate
+          </p>
         </div>
-        <button onClick={openAdd} className="sd-btn-primary"><Plus className="w-4 h-4" /> Adaugă ecran</button>
+        <button onClick={openAdd} className="sd-btn-primary">
+          <Plus className="w-4 h-4" /> Adaugă ecran
+        </button>
       </div>
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgba(255,255,255,0.25)' }} />
         <input className="sd-input pl-9" placeholder="Caută ecrane..." value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-white/30"><Loader2 className="w-8 h-8 animate-spin mx-auto mb-3" />Se încarcă...</div>
+        <div className="text-center py-16" style={{ color: 'rgba(255,255,255,0.25)' }}>
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3" />
+          <p className="text-sm">Se încarcă...</p>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="sd-card text-center py-16">
-          <Tv className="w-10 h-10 text-white/20 mx-auto mb-3" />
-          <p className="text-white/40 mb-4">{search ? 'Niciun ecran găsit' : 'Niciun ecran configurat.'}</p>
+          <div className="w-14 h-14 rounded-3xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <Tv className="w-6 h-6" style={{ color: 'rgba(255,255,255,0.2)' }} />
+          </div>
+          <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            {search ? 'Niciun ecran găsit' : 'Niciun ecran configurat.'}
+          </p>
           {!search && <button onClick={openAdd} className="sd-btn-primary">Adaugă primul ecran</button>}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(s => (
-            <div key={s.id} className="sd-card flex flex-col gap-3 hover:border-white/10 transition-all">
-              <div className="flex items-start justify-between">
+            <div key={s.id} className="sd-card flex flex-col gap-3 hover:scale-[1.01] transition-all duration-200"
+              style={{ position: 'relative', overflow: 'hidden' }}>
+              {/* Status glow */}
+              <div style={{
+                position: 'absolute', top: -16, right: -16, width: 60, height: 60,
+                borderRadius: '50%', filter: 'blur(20px)', opacity: 0.2,
+                background: s.status === 'online' ? '#10b981' : '#374151', pointerEvents: 'none',
+              }} />
+
+              <div className="flex items-start justify-between relative">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white text-sm">{s.name}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-white text-sm">{s.name}</span>
                     {s.status === 'online'
                       ? <span className="sd-badge-green"><Wifi className="w-2.5 h-2.5" />Online</span>
                       : <span className="sd-badge-red"><WifiOff className="w-2.5 h-2.5" />Offline</span>}
                   </div>
-                  <div className="text-xs text-white/40 mt-0.5">{s.location_name || 'Fără locație'} · {s.resolution}</div>
+                  <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    {s.location_name || 'Fără locație'} · {s.resolution}
+                  </div>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => openEdit(s)} className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/5"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => del(s)} className="p-1.5 rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => openEdit(s)} className="p-1.5 rounded-xl transition-all"
+                    style={{ color: 'rgba(255,255,255,0.35)' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'white'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; }}>
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => del(s)} className="p-1.5 rounded-xl transition-all"
+                    style={{ color: 'rgba(239,68,68,0.4)' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#f87171'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(239,68,68,0.4)'; }}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-xs">
-                <code className="flex-1 bg-surface-700 px-2 py-1 rounded text-white/50 truncate">/tv/{s.slug}</code>
+                <code className="flex-1 px-2 py-1.5 rounded-xl truncate"
+                  style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  /tv/{s.slug}
+                </code>
                 <button onClick={() => { navigator.clipboard.writeText(tvUrl(s.slug)); toast.success('URL copiat!'); }}
-                  className="p-1.5 rounded text-white/30 hover:text-white"><Copy className="w-3 h-3" /></button>
+                  className="p-1.5 rounded-xl transition-all" style={{ color: 'rgba(255,255,255,0.3)' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'white'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+                  <Copy className="w-3 h-3" />
+                </button>
                 <a href={tvUrl(s.slug)} target="_blank" rel="noreferrer"
-                  className="p-1.5 rounded text-white/30 hover:text-white"><ExternalLink className="w-3 h-3" /></a>
+                  className="p-1.5 rounded-xl transition-all" style={{ color: 'rgba(255,255,255,0.3)' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'white'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
 
-              {/* Active effects */}
               {EFFECTS_LIST.filter(ef => s[ef.key]).length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {EFFECTS_LIST.filter(ef => s[ef.key]).map(ef => (
-                    <span key={ef.key} className="text-[10px] bg-brand-600/20 text-brand-400 border border-brand-500/20 px-1.5 py-0.5 rounded-full">{ef.label}</span>
+                    <span key={ef.key} className="sd-badge-blue" style={{ fontSize: 10 }}>{ef.label}</span>
                   ))}
                 </div>
               )}
 
-              <button onClick={() => openAssign(s)} className="sd-btn-ghost text-xs w-full justify-center py-1.5 mt-1">
+              <button onClick={() => openAssign(s)} className="sd-btn-ghost text-xs w-full justify-center py-2 mt-1">
                 📺 Asignează conținut
               </button>
             </div>
@@ -218,11 +272,14 @@ export default function Screens() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="sd-label">Nume ecran*</label>
-                <input className="sd-input" value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} placeholder="Ex: Ecran Intrare" />
+                <input className="sd-input" value={form.name}
+                  onChange={e => setForm(f => ({...f, name: e.target.value}))} placeholder="Ex: Ecran Intrare" />
               </div>
               <div>
                 <label className="sd-label">Slug (URL unic)*</label>
-                <input className="sd-input" value={form.slug} onChange={e => setForm(f => ({...f, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}))} placeholder="ecran-intrare" />
+                <input className="sd-input" value={form.slug}
+                  onChange={e => setForm(f => ({...f, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}))}
+                  placeholder="ecran-intrare" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -241,28 +298,27 @@ export default function Screens() {
               </div>
             </div>
 
-            {/* Effects */}
             <div>
               <label className="sd-label">Efecte vizuale</label>
               <div className="grid grid-cols-2 gap-2">
                 {EFFECTS_LIST.map(ef => (
-                  <label key={ef.key} className="flex items-center gap-2 p-2 rounded-lg bg-surface-700 cursor-pointer">
+                  <label key={ef.key} className="flex items-center gap-2 p-3 rounded-2xl cursor-pointer transition-all"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
                     <input type="checkbox" checked={!!form[ef.key]}
                       onChange={e => setForm(f => ({...f, [ef.key]: e.target.checked}))}
-                      className="accent-brand-500" />
-                    <span className="text-sm text-white/80">{ef.label}</span>
+                      className="accent-violet-500" />
+                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.75)' }}>{ef.label}</span>
                   </label>
                 ))}
               </div>
             </div>
 
-            {/* Logo overlay */}
             <div>
-              <label className="flex items-center gap-2 cursor-pointer mb-2">
+              <label className="flex items-center gap-2 cursor-pointer mb-3">
                 <input type="checkbox" checked={form.logo_enabled}
                   onChange={e => setForm(f => ({...f, logo_enabled: e.target.checked}))}
-                  className="accent-brand-500" />
-                <span className="text-sm text-white/80 font-medium">Logo overlay</span>
+                  className="accent-violet-500" />
+                <span className="text-sm font-medium text-white">Logo overlay</span>
               </label>
               {form.logo_enabled && (
                 <div className="grid grid-cols-3 gap-2 pl-6">
