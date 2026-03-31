@@ -34,12 +34,16 @@ export default function Login() {
       <div className="w-full max-w-sm relative">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl
-                          bg-brand-600/20 border border-brand-500/30 mb-4">
-            <Tv className="w-7 h-7 text-brand-400" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992cb8c619d2da592897a92/a9063ac46_getapp2.png"
+              alt="GetApp Smart Displays"
+              className="h-12 w-auto"
+              style={{ filter: 'drop-shadow(0 0 16px rgba(99,87,255,0.4))' }}
+            />
           </div>
           <h1 className="text-2xl font-bold text-white">Smart Displays</h1>
-          <p className="text-white/40 text-sm mt-1">Intră în contul tău</p>
+          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Intră în contul tău</p>
         </div>
 
         <div className="sd-card space-y-4">

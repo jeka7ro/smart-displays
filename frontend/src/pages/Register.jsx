@@ -50,9 +50,13 @@ export default function Register() {
       <div className="hidden lg:flex flex-col justify-center px-14 py-16 w-[420px] shrink-0
                       bg-gradient-to-br from-brand-900/60 to-surface-900 border-r border-white/[0.06]">
         <div className="mb-10">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl
-                          bg-brand-600/30 border border-brand-500/30 mb-6">
-            <Tv className="w-7 h-7 text-brand-400" />
+          <div className="mb-6">
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992cb8c619d2da592897a92/a9063ac46_getapp2.png"
+              alt="GetApp Smart Displays"
+              className="h-10 w-auto"
+              style={{ filter: 'drop-shadow(0 0 12px rgba(99,87,255,0.35))' }}
+            />
           </div>
           <h2 className="text-3xl font-black text-white leading-snug mb-3">
             Gestionează ecranele<br />
@@ -82,9 +86,11 @@ export default function Register() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-brand-600/30 border border-brand-500/30">
-              <Tv className="w-5 h-5 text-brand-400" />
-            </div>
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992cb8c619d2da592897a92/a9063ac46_getapp2.png"
+              alt="GetApp Smart Displays"
+              className="h-7 w-auto"
+            />
             <span className="text-lg font-bold text-white">Smart Displays</span>
           </div>
 
