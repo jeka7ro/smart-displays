@@ -108,14 +108,14 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="sd-label">Numele companiei / afacerii *</label>
+              <label className="sd-label">Numele companiei / Persoană fizică *</label>
               <input
                 className="sd-input"
                 name="org_name"
                 value={form.org_name}
                 onChange={handle}
                 required
-                placeholder="Numele afacerii tale"
+                placeholder="Ex: Numele firmei sau Numele tău"
                 autoComplete="organization"
               />
             </div>
