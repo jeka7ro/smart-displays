@@ -32,20 +32,17 @@ export default function Login() {
                       bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-sm relative">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center mb-4">
+        <div className="sd-card space-y-4">
+
+          {/* Logo centrat în card */}
+          <div className="flex justify-center pt-2 pb-2">
             <img
               src="/logo.png"
               alt="GetApp Smart Displays"
-              className="h-14 w-auto"
+              style={{ height: 56, width: 'auto' }}
             />
           </div>
-          <h1 className="text-2xl font-bold text-white">Smart Displays</h1>
-          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Intră în contul tău</p>
-        </div>
 
-        <div className="sd-card space-y-4">
           {error && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
               <AlertCircle className="w-4 h-4 shrink-0" />
