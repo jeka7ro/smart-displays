@@ -54,7 +54,7 @@ export default function Register() {
             <img
               src="/logo.png"
               alt="GetApp Smart Displays"
-              className="h-14 w-auto"
+              className="h-16 w-auto"
             />
           </div>
           <h2 className="text-3xl font-black text-white leading-snug mb-3">
@@ -84,16 +84,12 @@ export default function Register() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div className="lg:hidden" style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div className="lg:hidden" style={{ textAlign: 'center', marginBottom: 32 }}>
             <img
               src="/logo.png"
               alt="GetApp Smart Displays"
-              style={{ height: 52, width: 'auto', display: 'inline-block' }}
+              style={{ height: 64, width: 'auto', display: 'inline-block' }}
             />
-          </div>
-
-          <div className="mb-7">
-            <h1 className="text-2xl font-bold text-white">Creează cont gratuit</h1>
           </div>
 
           <form onSubmit={submit} className="space-y-4">
