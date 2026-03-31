@@ -6,7 +6,7 @@ import {
   LogOut, CreditCard, Menu, X, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
-const LOGO_URL = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992cb8c619d2da592897a92/a9063ac46_getapp2.png';
+const LOGO_URL = '/logo.png';
 
 const NAV = [
   { to: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },

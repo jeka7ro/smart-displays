@@ -52,10 +52,9 @@ export default function Register() {
         <div className="mb-10">
           <div className="mb-6">
             <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992cb8c619d2da592897a92/a9063ac46_getapp2.png"
+              src="/logo.png"
               alt="GetApp Smart Displays"
-              className="h-10 w-auto"
-              style={{ filter: 'drop-shadow(0 0 12px rgba(99,87,255,0.35))' }}
+              className="h-12 w-auto"
             />
           </div>
           <h2 className="text-3xl font-black text-white leading-snug mb-3">
@@ -87,11 +86,10 @@ export default function Register() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992cb8c619d2da592897a92/a9063ac46_getapp2.png"
+              src="/logo.png"
               alt="GetApp Smart Displays"
-              className="h-7 w-auto"
+              className="h-8 w-auto"
             />
-            <span className="text-lg font-bold text-white">Smart Displays</span>
           </div>
 
           <div className="mb-7">
