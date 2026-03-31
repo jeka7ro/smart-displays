@@ -34,12 +34,12 @@ export default function Login() {
       <div className="w-full max-w-sm relative">
         <div className="sd-card space-y-4">
 
-          {/* Logo centrat în card */}
-          <div className="flex justify-center pt-2 pb-2">
+          {/* Logo */}
+          <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
             <img
               src="/logo.png"
               alt="GetApp Smart Displays"
-              style={{ height: 56, width: 'auto' }}
+              style={{ height: 58, width: 'auto', display: 'inline-block' }}
             />
           </div>
 
