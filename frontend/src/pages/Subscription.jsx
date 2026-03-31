@@ -11,9 +11,12 @@ export const Subscription = () => {
   const [stats, setStats] = useState({ screens: 0 });
 
   useEffect(() => {
-    // Încărcăm nr de ecrane pentru a afișa estimativ
+    // Încărcăm nr de ecrane și planul
     api.get('/dashboard/stats').then(res => {
-      setStats({ screens: res.data.screens_total || 0 });
+      setStats({ 
+        screens: res.data.screens_total || 0,
+        plan: res.data.plan || 'trial'
+      });
     }).catch(() => {});
   }, []);
 
@@ -57,15 +60,19 @@ export const Subscription = () => {
         </div>
 
         {/* Status Card */}
-        <div className="glass-card p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 border-l-4 border-l-emerald-500">
+        <div className={`glass-card p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 border-l-4 ${stats.plan === 'trial' || stats.plan === 'none' || stats.plan === 'free' ? 'border-l-amber-500' : 'border-l-emerald-500'}`}>
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-emerald-100 rounded-2xl">
-              <ShieldCheck className="w-8 h-8 text-emerald-600" />
+            <div className={`p-3 rounded-2xl ${stats.plan === 'trial' || stats.plan === 'none' || stats.plan === 'free' ? 'bg-amber-100' : 'bg-emerald-100'}`}>
+              <ShieldCheck className={`w-8 h-8 ${stats.plan === 'trial' || stats.plan === 'none' || stats.plan === 'free' ? 'text-amber-600' : 'text-emerald-600'}`} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-800">Status Cont: Activ</h2>
+              <h2 className="text-xl font-bold text-slate-800">
+                Status Cont: {stats.plan === 'trial' || stats.plan === 'none' || stats.plan === 'free' ? 'Versiune gratuită (Trial)' : 'Activ Premium'}
+              </h2>
               <p className="text-slate-500 mt-1">
-                Ecranele tale funcționează normal. Pentru a prelungi valabilitatea, alege un pachet.
+                {stats.plan === 'trial' || stats.plan === 'none' || stats.plan === 'free' 
+                  ? 'Limita este 1 singur ecran (max 5 minute pe TV). Alegeți un plan de mai jos pentru a activa ecrane nelimitate.'
+                  : 'Ecranele tale funcționează normal la pachet complet. Pentru a prelungi valabilitatea, alegeți un pachet nou.'}
               </p>
             </div>
           </div>

@@ -61,6 +61,7 @@ const ScreenThumbnail = ({ screen, thumbData, thumbLoading }) => {
 export const Screens = () => {
   const { isAdmin } = useAuth();
   const [screens, setScreens] = useState([]);
+  const [stats, setStats] = useState({ plan: 'active' });
   const [locations, setLocations] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,16 +104,18 @@ export const Screens = () => {
 
   const loadData = async () => {
     try {
-      const [screensRes, locationsRes, brandsRes] = await Promise.all([
+      const [screensRes, locationsRes, brandsRes, statsRes] = await Promise.all([
         api.get('/screens'),
         api.get('/locations'),
-        api.get('/brands')
+        api.get('/brands'),
+        api.get('/dashboard/stats')
       ]);
       setScreens(screensRes.data.sort((a, b) =>
         (a.name || '').localeCompare(b.name || '', undefined, { numeric: true })
       ));
       setLocations(locationsRes.data);
       setBrands(brandsRes.data);
+      setStats(statsRes.data);
 
       // Fetch all thumbnails in a single batch request (replaces 25 individual calls)
       api.get('/screens/thumbnails')
@@ -341,22 +344,30 @@ export const Screens = () => {
               <p className="text-slate-500">Gestionează ecranele digitale și conținutul lor</p>
             </div>
             {isAdmin() && (
-              <Dialog open={showDialog} onOpenChange={(open) => {
-                setShowDialog(open);
-                if (!open) resetForm();
-              }}>
-                <DialogTrigger asChild>
-                  <Button className="btn-red px-6 py-2 rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all h-[44px]">
-                    <Plus className="w-5 h-5 mr-2" />
-                    Adaugă ecran
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[90vh] flex flex-col">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingScreen ? 'Editează ecranul' : 'Adaugă ecran nou'}
-                    </DialogTitle>
-                  </DialogHeader>
+              <div className="flex flex-col items-end">
+                <Dialog open={showDialog} onOpenChange={(open) => {
+                  setShowDialog(open);
+                  if (!open) resetForm();
+                }}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className={`px-6 py-2 rounded-xl text-sm font-semibold shadow-md transition-all h-[44px] ${
+                        ((stats.plan === 'trial' || stats.plan === 'free' || stats.plan === 'none') && screens.length >= 1) 
+                          ? 'bg-slate-400 cursor-not-allowed opacity-80' 
+                          : 'btn-red hover:shadow-lg'
+                      }`}
+                      disabled={(stats.plan === 'trial' || stats.plan === 'free' || stats.plan === 'none') && screens.length >= 1}
+                    >
+                      <Plus className="w-5 h-5 mr-2" />
+                      {((stats.plan === 'trial' || stats.plan === 'free' || stats.plan === 'none') && screens.length >= 1) ? 'Limita 1 Ecran Atinsă' : 'Adaugă ecran'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-h-[90vh] flex flex-col">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingScreen ? 'Editează ecranul' : 'Adaugă ecran nou'}
+                      </DialogTitle>
+                    </DialogHeader>
                   <div className="flex-1 overflow-y-auto pr-1" style={{ maxHeight: 'calc(90vh - 120px)' }}>
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div>
@@ -484,6 +495,12 @@ export const Screens = () => {
                   </div>
                 </DialogContent>
               </Dialog>
+              {((stats.plan === 'trial' || stats.plan === 'free' || stats.plan === 'none') && screens.length >= 1) && (
+                <p className="text-xs text-red-500 font-bold mt-2 pr-1 text-right max-w-xs leading-tight">
+                  Ai atins numărul maxim de ecrane pentru versiunea gratuită. Alege un abonament pentru opțiuni nelimitate.
+                </p>
+              )}
+            </div>
             )}
           </div>
 

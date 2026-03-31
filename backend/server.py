@@ -470,6 +470,14 @@ async def list_screens(u=Depends(current_user)):
 
 @api.post("/screens", status_code=201)
 async def create_screen(body: ScreenIn, u=Depends(current_user)):
+    # Block >1 screens for trial/free/none
+    org_data = await DB.org_get(u["org_id"])
+    plan = org_data.get("plan", "trial") if org_data else "trial"
+    if plan in ["trial", "free", "none"]:
+        screens = await DB.screens_list(u["org_id"])
+        if len(screens) >= 1:
+            raise HTTPException(status_code=403, detail="Abonamentul free permite un singur ecran. Treceți la un cont superior pentru ecrane nelimitate.")
+
     if await DB.screen_exists_by_slug(body.slug):
         raise HTTPException(400, "Slug already taken, choose another")
     row = {"id": str(uuid.uuid4()), "org_id": u["org_id"],
@@ -818,12 +826,17 @@ async def update_billing_config(request: Request, u=Depends(current_user)):
 
 @api.get("/dashboard/stats")
 async def get_dashboard_stats(u=Depends(current_user)):
+    screens = await DB.screens_list(u["org_id"])
+    org_data = await DB.org_get(u["org_id"])
+    plan = org_data.get("plan", "trial") if org_data else "trial"
+    
     return {
         "locations": 0,
-        "screens_total": 0,
-        "screens_online": 0,
+        "screens_total": len(screens),
+        "screens_online": sum(1 for s in screens if s.get("status") in ["online", "active"]),
         "products_active": 0,
         "content_files": 0,
+        "plan": plan,
         "recent_activity": []
     }
 
