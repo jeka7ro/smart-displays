@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { Tv, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import GoogleButton from '../components/GoogleButton.jsx';
 
 export default function Login() {
@@ -75,8 +76,24 @@ export default function Login() {
                        name="password" value={form.password} onChange={handle}
                        required placeholder="Parola ta" autoComplete="current-password" />
                 <button type="button" onClick={() => setShowPw(s => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  title={showPw ? "Ascunde parola" : "Vizualizează parola"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-surface-800 p-1.5 rounded-md border border-white/5 text-brand-400 hover:text-brand-300 hover:bg-surface-700 transition-all flex items-center justify-center">
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Memory and Recover */}
+              <div className="flex items-center justify-between mt-3 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input type="checkbox" className="w-4 h-4 rounded border-white/10 bg-surface-900 
+                                                  text-brand-500 focus:ring-brand-500/50 focus:ring-offset-surface-800 
+                                                  transition-all checked:border-brand-500" defaultChecked />
+                  <span className="text-white/60 group-hover:text-white transition-colors">Ține-mă minte</span>
+                </label>
+                
+                <button type="button" onClick={() => toast.info('Funcționalitatea de recuperare parolă va fi disponibilă în curând.')} 
+                        className="text-brand-400 hover:text-brand-300 transition-colors bg-transparent border-0 p-0 text-sm">
+                  Ai uitat parola?
                 </button>
               </div>
             </div>
