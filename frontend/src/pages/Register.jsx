@@ -9,7 +9,7 @@ export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    org_name: '', full_name: '', email: '', phone: '', password: '', confirm: ''
+    is_company: false, org_name: '', first_name: '', last_name: '', email: '', phone: '', password: '', confirm: ''
   });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,10 @@ export default function Register() {
     if (form.password.length < 6) { setError('Parola trebuie să aibă minim 6 caractere'); return; }
     setError(''); setLoading(true);
     try {
-      await register({ org_name: form.org_name, full_name: form.full_name, email: form.email, phone: form.phone, password: form.password });
+      const computedFullName = `${form.first_name} ${form.last_name}`.trim();
+      const computedOrgName = form.is_company && form.org_name.trim() ? form.org_name : computedFullName;
+
+      await register({ org_name: computedOrgName, full_name: computedFullName, email: form.email, phone: form.phone, password: form.password });
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Eroare la înregistrare. Încearcă din nou.');
@@ -101,36 +104,35 @@ export default function Register() {
 
             <GoogleButton isRegister={true} onError={setError} />
 
-            <div className="flex items-center gap-3 py-1">
+            <div className="flex items-center gap-3 py-1 mb-2">
               <div className="flex-1 h-px bg-white/[0.06]" />
               <span className="text-xs text-white/25">sau cu email</span>
               <div className="flex-1 h-px bg-white/[0.06]" />
             </div>
 
-            <div>
-              <label className="sd-label">Numele companiei / Persoană fizică *</label>
-              <input
-                className="sd-input"
-                name="org_name"
-                value={form.org_name}
-                onChange={handle}
-                required
-                placeholder="Ex: Numele firmei sau Numele tău"
-                autoComplete="organization"
-              />
-            </div>
+            <label className="flex items-center gap-2 cursor-pointer pb-2 group w-fit">
+              <input type="checkbox" name="is_company" checked={form.is_company}
+                     onChange={(e) => setForm(f => ({ ...f, is_company: e.target.checked }))}
+                     className="w-4 h-4 rounded border-white/10 bg-surface-900 text-brand-500 focus:ring-brand-500/50 transition-all checked:border-brand-500" />
+              <span className="text-sm text-white/50 group-hover:text-white transition-colors">Înregistrez o companie (Persoană Juridică)</span>
+            </label>
 
-            <div>
-              <label className="sd-label">Numele tău *</label>
-              <input
-                className="sd-input"
-                name="full_name"
-                value={form.full_name}
-                onChange={handle}
-                required
-                placeholder="Prenume Nume"
-                autoComplete="name"
-              />
+            {form.is_company && (
+              <div className="animate-fade-in">
+                <label className="sd-label">Numele companiei *</label>
+                <input className="sd-input" name="org_name" value={form.org_name} onChange={handle} required={form.is_company} placeholder="Ex: SC Companie SRL" />
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="sd-label">Nume *</label>
+                <input className="sd-input" name="last_name" value={form.last_name} onChange={handle} required placeholder="Popescu" autoComplete="family-name" />
+              </div>
+              <div>
+                <label className="sd-label">Prenume *</label>
+                <input className="sd-input" name="first_name" value={form.first_name} onChange={handle} required placeholder="Ion" autoComplete="given-name" />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
