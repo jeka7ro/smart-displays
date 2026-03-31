@@ -763,6 +763,7 @@ async def delete_playlist(pl_id: str, u=Depends(current_user)):
 
 class BillingActivateIn(BaseModel):
     plan: str         # day, week, month
+    quantity: int = 1
     ref: Optional[str] = None
 
 @api.post("/billing/checkout")

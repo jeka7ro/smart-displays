@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { CreditCard, Calendar, ShieldCheck, Tv, Zap } from 'lucide-react';
+import { CreditCard, ShieldCheck, Tv, Plus, Minus, Mail, Phone } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
 import { toast } from 'sonner';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 export const Subscription = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [screenCount, setScreenCount] = useState(1);
   const [stats, setStats] = useState({ screens: 0 });
 
   useEffect(() => {
@@ -23,7 +24,7 @@ export const Subscription = () => {
   const handleCheckout = async (planType) => {
     setLoading(true);
     try {
-      const res = await api.post('/billing/checkout', { plan: planType });
+      const res = await api.post('/billing/checkout', { plan: planType, quantity: screenCount });
       if (res.data && res.data.url) {
         // Redirecționează către Viva Wallet
         window.location.href = res.data.url;
@@ -87,10 +88,33 @@ export const Subscription = () => {
 
         {/* Pricing Table */}
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <Zap className="w-6 h-6 text-amber-500" />
+          <h3 className="text-2xl font-bold text-slate-800 mb-6">
             Prelungește Abonamentul (Chirie)
           </h3>
+          
+          <div className="mb-8 flex flex-col md:flex-row items-center gap-4 bg-white/60 p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto md:mx-0">
+            <div>
+              <span className="font-bold text-slate-800 text-lg block">Selectează numărul de ecrane</span>
+              <span className="text-slate-500 text-sm">Alege pentru câte ecrane dorești să achiți abonamentul</span>
+            </div>
+            <div className="md:ml-auto flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+              <button 
+                onClick={() => setScreenCount(Math.max(1, screenCount - 1))}
+                className="p-3 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+                title="Scade numar ecrane"
+              >
+                <Minus className="w-5 h-5"/>
+              </button>
+              <span className="w-16 text-center font-black text-2xl text-indigo-600">{screenCount}</span>
+              <button 
+                onClick={() => setScreenCount(screenCount + 1)}
+                className="p-3 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+                title="Adauga numar ecrane"
+              >
+                <Plus className="w-5 h-5"/>
+              </button>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {plans.map(plan => (
@@ -107,9 +131,9 @@ export const Subscription = () => {
                 <h4 className="text-xl font-bold text-slate-800 mb-2">{plan.name}</h4>
                 <p className="text-slate-500 text-sm mb-6">{plan.desc}</p>
                 
-                <div className="mt-auto mb-8">
-                  <span className="text-4xl font-extrabold text-slate-800">{plan.price}</span>
-                  <span className="text-slate-500 text-sm ml-1">/ ecran</span>
+                <div className="mt-auto mb-8 flex flex-col items-start gap-1">
+                  <span className="text-4xl font-extrabold text-slate-800">{(parseFloat(plan.price) * screenCount).toFixed(2)} €</span>
+                  <span className="text-slate-400 text-sm font-medium">total pentru {screenCount} ecran{screenCount > 1 ? 'e' : ''} (TVA inclus)</span>
                 </div>
                 
                 <button
@@ -128,8 +152,28 @@ export const Subscription = () => {
           </div>
         </div>
         
-        <div className="text-center mt-8">
-          <p className="text-sm text-slate-500 flex items-center justify-center gap-2">
+        <div className="mt-12 glass-card p-8 border flex flex-col items-center justify-center text-center">
+          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+            <Mail className="w-6 h-6 text-slate-600" />
+          </div>
+          <h4 className="text-xl font-bold text-slate-800 mb-2">Ai nevoie de un abonament personalizat?</h4>
+          <p className="text-slate-500 mb-6 max-w-xl text-lg">
+            Abonații corporate pot beneficia de facturare personalizată și contract B2B. Te rugăm să ne contactezi direct pentru ecrane nelimitate, SLA garantat și asistență dedicată.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <a href="mailto:contact@getapp.ro" className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition-colors shadow-md">
+              <Mail className="w-4 h-4" />
+              Trimite Email
+            </a>
+            <a href="tel:+4" className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-800 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm">
+              <Phone className="w-4 h-4" />
+              Sună-ne
+            </a>
+          </div>
+        </div>
+
+        <div className="text-center mt-12 mb-8">
+          <p className="text-sm text-slate-500 flex items-center justify-center gap-2 font-medium">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             Plăți securizate prin Viva Wallet. Activarea se face automat după confirmarea plății.
           </p>
