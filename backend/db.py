@@ -517,6 +517,9 @@ async def screen_zone_get(screen_id: str, zone_id: str = "main") -> Optional[Dic
         "SELECT * FROM screen_zones WHERE screen_id=$1 AND zone_id=$2", screen_id, zone_id
     )
 
+async def screen_zones_list(screen_id: str) -> List[Dict]:
+    return await _all("SELECT * FROM screen_zones WHERE screen_id=$1", screen_id)
+
 async def screen_zone_upsert(org_id: str, screen_id: str, zone_id: str,
                               content_id: Optional[str], playlist_id: Optional[str],
                               content_type: str = "single_content") -> None:
@@ -530,6 +533,30 @@ async def screen_zone_upsert(org_id: str, screen_id: str, zone_id: str,
              playlist_id=EXCLUDED.playlist_id""",
         str(uuid.uuid4()), org_id, screen_id, zone_id, content_type, content_id, playlist_id
     )
+
+
+# ─────────────────────────────────────── CONTENT FOLDERS ──────────────────────
+
+async def folder_list(org_id: str) -> List[Dict]:
+    return await _all("SELECT * FROM content_folders WHERE org_id=$1 ORDER BY created_at DESC", org_id)
+
+async def folder_insert(row: Dict) -> None:
+    await _exec(
+        "INSERT INTO content_folders (id,org_id,name,color,icon,created_at) VALUES ($1,$2,$3,$4,$5,$6)",
+        row["id"], row["org_id"], row["name"], row.get("color", "#6366f1"), row.get("icon", "folder"), row["created_at"]
+    )
+
+async def folder_update(folder_id: str, org_id: str, data: Dict) -> None:
+    await _exec(
+        "UPDATE content_folders SET name=$1,color=$2,icon=$3 WHERE id=$4 AND org_id=$5",
+        data["name"], data.get("color", "#6366f1"), data.get("icon", "folder"), folder_id, org_id
+    )
+
+async def folder_delete(folder_id: str, org_id: str) -> bool:
+    # Clear folder_id from content items
+    await _exec("UPDATE content SET folder_id=NULL WHERE folder_id=$1", folder_id)
+    r = await _exec("DELETE FROM content_folders WHERE id=$1 AND org_id=$2", folder_id, org_id)
+    return "DELETE 1" in r
 
 
 # ─────────────────────────────────────── CONTENT ──────────────────────────────

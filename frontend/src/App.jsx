@@ -1,66 +1,164 @@
 import React from 'react';
+import './App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
-import Layout from './components/Layout.jsx';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Toaster } from './components/ui/sonner';
 
 // Pages
-import Login    from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import Screens  from './pages/Screens.jsx';
-import Content  from './pages/Content.jsx';
-import Playlists from './pages/Playlists.jsx';
-import Locations from './pages/Locations.jsx';
-import Billing  from './pages/Billing.jsx';
-import Onboarding from './pages/Onboarding.jsx';
-
-function PrivateRoute({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="min-h-screen bg-surface-900 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-  if (!user) return <Navigate to="/login" replace />;
-  if (user && !user.is_onboarded && window.location.pathname !== '/onboarding') {
-    return <Navigate to="/onboarding" replace />;
-  }
-  return children;
-}
-
-function PublicRoute({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return null;
-  return user ? <Navigate to="/dashboard" replace /> : children;
-}
+import { Login } from './pages/Login';
+import { Dashboard } from './pages/Dashboard';
+import { Locations } from './pages/Locations';
+import { Screens } from './pages/Screens';
+import { ScreenDesigner } from './pages/ScreenDesigner';
+import { Content } from './pages/Content';
+import { Playlists } from './pages/Playlists';
+import { ScreenSync } from './pages/ScreenSync';
+import { DisplayScreen } from './pages/DisplayScreen';
+import { Invitations } from './pages/Invitations';
+import { Users } from './pages/Users';
+import ActivityLogs from './pages/ActivityLogs';
+import { LivePreviewDashboard } from './pages/LivePreviewDashboard';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
+import { ShortLinkRedirect } from './components/ShortLinkRedirect';
+import { HappyHour } from './pages/HappyHour';
+import { Billing } from './pages/Billing';
+import { Subscription } from './pages/Subscription';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Toaster position="top-right" richColors theme="dark" />
+    <AuthProvider>
+      <BrowserRouter>
         <Routes>
-          {/* Public */}
-          <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
-          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          {/* Public routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/s/:slug" element={<ShortLinkRedirect />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/display/:slug" element={<DisplayScreen />} />
+          <Route path="/tv/:slug" element={<DisplayScreen />} />
 
-          {/* Protected */}
-          <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
-          <Route path="/dashboard"  element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
-          <Route path="/screens"    element={<PrivateRoute><Layout><Screens /></Layout></PrivateRoute>} />
-          <Route path="/content"    element={<PrivateRoute><Layout><Content /></Layout></PrivateRoute>} />
-          <Route path="/playlists"  element={<PrivateRoute><Layout><Playlists /></Layout></PrivateRoute>} />
-          <Route path="/locations"  element={<PrivateRoute><Layout><Locations /></Layout></PrivateRoute>} />
-          <Route path="/brands"     element={<PrivateRoute><Layout><Locations /></Layout></PrivateRoute>} />
-          <Route path="/billing"    element={<PrivateRoute><Layout><Billing /></Layout></PrivateRoute>} />
+          {/* Protected routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/subscription"
+            element={
+              <ProtectedRoute>
+                <Subscription />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/live-preview"
+            element={
+              <ProtectedRoute>
+                <LivePreviewDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/locations"
+            element={
+              <ProtectedRoute>
+                <Locations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/screens"
+            element={
+              <ProtectedRoute>
+                <Screens />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/screens/:screenId/design"
+            element={
+              <ProtectedRoute>
+                <ScreenDesigner />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/content"
+            element={
+              <ProtectedRoute>
+                <Content />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/playlists"
+            element={
+              <ProtectedRoute>
+                <Playlists />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/happy-hour"
+            element={
+              <ProtectedRoute>
+                <HappyHour />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/screen-sync"
+            element={
+              <ProtectedRoute>
+                <ScreenSync />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/invitations"
+            element={
+              <ProtectedRoute>
+                <Invitations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <Users />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/activity-logs"
+            element={
+              <ProtectedRoute>
+                <ActivityLogs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/billing"
+            element={
+              <ProtectedRoute>
+                <Billing />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Fallback */}
+          {/* Redirect root to dashboard */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+        <Toaster position="top-right" />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

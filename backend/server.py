@@ -183,6 +183,12 @@ class ContentIn(BaseModel):
     loop: Optional[bool] = True
     folder_id: Optional[str] = None
 
+class FolderIn(BaseModel):
+    name: str
+    description: Optional[str] = None
+    color: Optional[str] = "#6366f1"
+    icon: Optional[str] = "folder"
+
 class PlaylistIn(BaseModel):
     model_config = ConfigDict(extra="ignore")
     name: str
@@ -199,6 +205,13 @@ class PlaylistIn(BaseModel):
 class ZoneAssignIn(BaseModel):
     zone_id: Optional[str] = "main"
     content_type: Optional[str] = "single_content"
+    content_id: Optional[str] = None
+    playlist_id: Optional[str] = None
+
+class ScreenZoneIn(BaseModel):
+    screen_id: str
+    zone_id: str
+    content_type: str
     content_id: Optional[str] = None
     playlist_id: Optional[str] = None
 
@@ -414,6 +427,43 @@ async def delete_brand(brand_id: str, u=Depends(current_user)):
 # SCREENS
 # ══════════════════════════════════════════════════════════════════════════════
 
+@api.get("/screens/thumbnails")
+async def get_screen_thumbnails(u=Depends(current_user)):
+    # Returns a dict of { "slug": "base64_or_url" }. Empty for now.
+    return {}
+
+HARDCODED_TEMPLATES = [
+    {
+        "id": "fullscreen",
+        "name": "Ecran Complet (1Z)",
+        "zones": [
+            {"id": "zone-1", "name": "Zonă Principală", "x": 0, "y": 0, "width": 100, "height": 100}
+        ]
+    },
+    {
+        "id": "split_v",
+        "name": "Split Vertical (2Z)",
+        "zones": [
+            {"id": "zone-1", "name": "Stânga (50%)", "x": 0, "y": 0, "width": 50, "height": 100},
+            {"id": "zone-2", "name": "Dreapta (50%)", "x": 50, "y": 0, "width": 50, "height": 100}
+        ]
+    },
+    {
+        "id": "l_shape",
+        "name": "L-Shape (3Z)",
+        "zones": [
+            {"id": "zone-1", "name": "Principal", "x": 0, "y": 0, "width": 75, "height": 80},
+            {"id": "zone-2", "name": "Lateral", "x": 75, "y": 0, "width": 25, "height": 100},
+            {"id": "zone-3", "name": "Subsol", "x": 0, "y": 80, "width": 75, "height": 20}
+        ]
+    }
+]
+
+@api.get("/screen-templates")
+async def list_screen_templates(u=Depends(current_user)):
+    return HARDCODED_TEMPLATES
+
+
 @api.get("/screens")
 async def list_screens(u=Depends(current_user)):
     return await DB.screens_list(u["org_id"])
@@ -433,6 +483,21 @@ async def get_screen(screen_id: str, u=Depends(current_user)):
     if not s:
         raise HTTPException(404)
     return s
+
+@api.get("/screen-zones/{screen_id}")
+async def get_screen_zones(screen_id: str, u=Depends(current_user)):
+    return await DB.screen_zones_list(screen_id)
+
+@api.post("/screen-zones")
+async def save_screen_zone(body: ScreenZoneIn, u=Depends(current_user)):
+    s = await DB.screen_get(body.screen_id, u["org_id"])
+    if not s:
+        raise HTTPException(404, "Screen not found")
+    await DB.screen_zone_upsert(
+        u["org_id"], body.screen_id, body.zone_id,
+        body.content_id, body.playlist_id, body.content_type
+    )
+    return {"ok": True}
 
 @api.put("/screens/{screen_id}")
 async def update_screen(screen_id: str, body: ScreenIn, u=Depends(current_user)):
@@ -485,17 +550,31 @@ async def tv_display(slug: str):
     # Heartbeat
     await DB.screen_heartbeat(screen["id"])
 
-    # Get assigned content / playlist
-    zone = await DB.screen_zone_get(screen["id"])
-    content = None
-    playlist = None
-    if zone:
-        if zone.get("content_id"):
-            c = await DB._one("SELECT * FROM content WHERE id=$1", zone["content_id"])
+    # Get template
+    template_id = screen.get("template_id") or "fullscreen"
+    template = next((t for t in HARDCODED_TEMPLATES if t["id"] == template_id), HARDCODED_TEMPLATES[0])
+
+    # Get assigned content / playlists for ALL zones
+    db_zones = await DB.screen_zones_list(screen["id"])
+    zones_config = []
+    for z in db_zones:
+        content = None
+        playlist = None
+        c_id = z.get("content_id")
+        p_id = z.get("playlist_id")
+        if c_id:
+            c = await DB._one("SELECT * FROM content WHERE id=$1", c_id)
             content = DB._row(c) if c else None
-        if zone.get("playlist_id"):
-            p = await DB._one("SELECT * FROM playlists WHERE id=$1", zone["playlist_id"])
+        if p_id:
+            p = await DB._one("SELECT * FROM playlists WHERE id=$1", p_id)
             playlist = DB._row(p) if p else None
+        
+        zones_config.append({
+            "zone_id": z["zone_id"],
+            "content_type": z["content_type"],
+            "content": content,
+            "playlist": playlist
+        })
 
     # Fetch logo if needed
     if screen.get("logo_enabled") and screen.get("logo_brand_id"):
@@ -503,11 +582,21 @@ async def tv_display(slug: str):
         if brand and brand.get("logo_url"):
             screen["logo_url"] = brand["logo_url"]
 
+    # Fetch organization to check subscription limits
+    org_data = await DB.org_get(screen["org_id"])
+    subscription_status = org_data.get("subscription_status", "none") if org_data else "none"
+
+    # Also extract 'main' zone to support fallback
+    main_zone = next((z for z in zones_config if z["zone_id"] == "main"), None)
+
     return {
         "screen": screen,
-        "zone": zone,
-        "content": content,
-        "playlist": playlist,
+        "template": template,
+        "zones_config": zones_config,
+        "zone": main_zone,  # Fallback for older frontend code
+        "content": main_zone["content"] if main_zone else None,
+        "playlist": main_zone["playlist"] if main_zone else None,
+        "subscription_status": subscription_status,
     }
 
 @api.post("/display/{slug}/heartbeat")
@@ -521,6 +610,31 @@ async def tv_heartbeat(slug: str):
 # ══════════════════════════════════════════════════════════════════════════════
 # CONTENT
 # ══════════════════════════════════════════════════════════════════════════════
+
+@api.get("/content/folders")
+async def list_content_folders(u=Depends(current_user)):
+    return await DB.folder_list(u["org_id"])
+
+@api.post("/content/folders", status_code=201)
+async def create_folder(body: FolderIn, u=Depends(current_user)):
+    row = {
+        "id": str(uuid.uuid4()), "org_id": u["org_id"],
+        **body.model_dump(), "created_at": datetime.now(timezone.utc)
+    }
+    await DB.folder_insert(row)
+    return row
+
+@api.patch("/content/folders/{folder_id}")
+async def update_folder(folder_id: str, body: FolderIn, u=Depends(current_user)):
+    await DB.folder_update(folder_id, u["org_id"], body.model_dump())
+    return {"ok": True}
+
+@api.delete("/content/folders/{folder_id}")
+async def delete_folder(folder_id: str, u=Depends(current_user)):
+    ok = await DB.folder_delete(folder_id, u["org_id"])
+    if not ok:
+        raise HTTPException(404)
+    return {"ok": True}
 
 @api.get("/content")
 async def list_content(u=Depends(current_user)):
@@ -590,6 +704,11 @@ async def delete_content(content_id: str, u=Depends(current_user)):
     if not ok:
         raise HTTPException(404)
     return {"ok": True}
+
+@api.get("/content-folders")
+async def list_content_folders(u=Depends(current_user)):
+    # Temporary stub to prevent 405 Method Not Allowed in frontend
+    return []
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -681,6 +800,36 @@ async def get_billing(u=Depends(current_user)):
     org = await DB.org_get(u["org_id"])
     history = await DB.billing_list(u["org_id"])
     return {"org": org, "history": history}
+
+@api.get("/billing/summary")
+async def get_billing_summary(u=Depends(current_user)):
+    # Temporary stub to prevent 404s in frontend Billing page
+    return {
+        "locations": [],
+        "config": {"price_per_screen": 15.0, "currency": "EUR", "notes": ""},
+        "total_screens": 0,
+        "total_monthly": 0
+    }
+
+@api.put("/billing/config")
+async def update_billing_config(request: Request, u=Depends(current_user)):
+    # Temporary stub
+    return {"ok": True}
+
+@api.get("/dashboard/stats")
+async def get_dashboard_stats(u=Depends(current_user)):
+    return {
+        "locations": 0,
+        "screens_total": 0,
+        "screens_online": 0,
+        "products_active": 0,
+        "content_files": 0,
+        "recent_activity": []
+    }
+
+@api.get("/happy-hours")
+async def list_happy_hours(u=Depends(current_user)):
+    return []
 
 
 # ══════════════════════════════════════════════════════════════════════════════
