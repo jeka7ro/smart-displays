@@ -36,12 +36,14 @@ export default function Login() {
         <div className="sd-card space-y-4">
 
           {/* Logo */}
-          <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
-            <img
-              src="/logo.png"
-              alt="GetApp Smart Displays"
-              style={{ height: 58, width: 'auto', display: 'inline-block' }}
-            />
+          <div className="flex flex-col items-center justify-center mb-8">
+            <div className="w-14 h-14 rounded-2xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center shadow-xl shadow-brand-500/20 mb-3">
+              <Tv className="w-7 h-7 text-brand-400" />
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-black text-white leading-none tracking-tight">GetApp</div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-brand-400 mt-1">Smart Displays</div>
+            </div>
           </div>
 
           {error && (

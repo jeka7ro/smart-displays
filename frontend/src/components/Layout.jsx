@@ -33,17 +33,17 @@ export default function Layout({ children }) {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className={`flex items-center gap-3 px-4 py-5 ${collapsed ? 'justify-center' : ''}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <a href="https://getapp.ro" target="_blank" rel="noreferrer">
-          <div className="bg-white rounded-xl p-1.5 shrink-0 shadow-lg shadow-white/10">
-            <img src={LOGO_URL} alt="GetApp" className="h-6 w-auto" />
+        <NavLink to="/dashboard" className="flex items-center gap-3 truncate">
+          <div className="w-9 h-9 shrink-0 rounded-xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center shadow-lg shadow-brand-500/10">
+            <Tv className="w-5 h-5 text-brand-400" />
           </div>
-        </a>
-        {!collapsed && (
-          <div>
-            <div className="text-sm font-bold text-white leading-tight">Smart Displays</div>
-            <div className="text-[10px] font-medium uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>by GetApp</div>
-          </div>
-        )}
+          {!collapsed && (
+            <div className="truncate">
+              <div className="text-[15px] font-black text-white leading-tight tracking-wide">GetApp</div>
+              <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-400">Smart Displays</div>
+            </div>
+          )}
+        </NavLink>
       </div>
 
       {/* Nav */}

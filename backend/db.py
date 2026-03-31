@@ -55,6 +55,7 @@ async def init_db() -> None:
                 ssl=ssl_mode,
                 min_size=1, max_size=5,
                 command_timeout=20, timeout=15,
+                statement_cache_size=0,
             )
             logger.info("DB connected ✓")
             break
