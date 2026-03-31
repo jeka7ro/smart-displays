@@ -32,6 +32,7 @@ export const auth = {
   login:    (data) => api.post('/auth/login', data),
   me:       ()     => api.get('/auth/me'),
   changePassword: (data) => api.post('/auth/change-password', data),
+  onboarding: ()   => api.post('/auth/onboarding'),
 };
 
 export const screens = {
@@ -80,4 +81,5 @@ export const brands = {
 export const billing = {
   get:      ()     => api.get('/billing'),
   activate: (data) => api.post('/billing/activate', data),
+  checkout: (data) => api.post('/billing/checkout', data),
 };

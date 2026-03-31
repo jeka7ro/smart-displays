@@ -13,6 +13,7 @@ import Content  from './pages/Content.jsx';
 import Playlists from './pages/Playlists.jsx';
 import Locations from './pages/Locations.jsx';
 import Billing  from './pages/Billing.jsx';
+import Onboarding from './pages/Onboarding.jsx';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -21,7 +22,11 @@ function PrivateRoute({ children }) {
       <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
-  return user ? children : <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user && !user.is_onboarded && window.location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+  return children;
 }
 
 function PublicRoute({ children }) {
@@ -41,6 +46,7 @@ function App() {
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
           {/* Protected */}
+          <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
           <Route path="/dashboard"  element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
           <Route path="/screens"    element={<PrivateRoute><Layout><Screens /></Layout></PrivateRoute>} />
           <Route path="/content"    element={<PrivateRoute><Layout><Content /></Layout></PrivateRoute>} />

@@ -100,12 +100,18 @@ async def _create_tables() -> None:
             hashed_password TEXT NOT NULL,
             role            TEXT DEFAULT 'admin',
             is_owner        BOOLEAN DEFAULT FALSE,
+            is_onboarded    BOOLEAN DEFAULT FALSE,
             status          TEXT DEFAULT 'active',
             avatar_url      TEXT,
             phone           TEXT,
             created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             last_login      TIMESTAMPTZ
         );
+    """)
+
+    # Migrare automată pentru users.is_onboarded
+    await pool.execute("""
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS is_onboarded BOOLEAN DEFAULT FALSE;
     """)
 
     await pool.execute("""

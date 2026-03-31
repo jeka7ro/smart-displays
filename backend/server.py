@@ -244,7 +244,8 @@ async def register(body: RegisterIn):
     token = create_token(user_id, org_id)
     return {"access_token": token, "token_type": "bearer",
             "user": {"id": user_id, "email": body.email, "full_name": body.full_name,
-                     "org_id": org_id, "org_name": body.org_name, "role": "admin", "is_owner": True}}
+                     "org_id": org_id, "org_name": body.org_name, "role": "admin", 
+                     "is_owner": True, "is_onboarded": False}}
 
 
 @api.post("/auth/login")
@@ -258,17 +259,22 @@ async def login(body: LoginIn):
     org = await DB.org_get(user["org_id"])
     token = create_token(user["id"], user["org_id"])
     return {"access_token": token, "token_type": "bearer",
-            "user": {**{k: user[k] for k in ["id","email","full_name","role","is_owner","org_id"]},
+            "user": {**{k: user[k] for k in ["id","email","full_name","role","is_owner","org_id","is_onboarded"]},
                      "org_name": org["name"] if org else ""}}
 
 
 @api.get("/auth/me")
 async def me(u=Depends(current_user)):
     org = await DB.org_get(u["org_id"])
-    return {**{k: u[k] for k in ["id","email","full_name","role","is_owner","org_id"]},
+    return {**{k: u[k] for k in ["id","email","full_name","role","is_owner","org_id","is_onboarded"]},
             "org_name": org["name"] if org else "",
             "org_plan": org.get("plan") if org else "trial",
             "org_plan_expires_at": org.get("plan_expires_at") if org else None}
+
+@api.post("/auth/onboarding")
+async def finish_onboarding(u=Depends(current_user)):
+    await DB.pool.execute("UPDATE users SET is_onboarded = TRUE WHERE id = $1", u["id"])
+    return {"ok": True}
 
 
 @api.post("/auth/change-password")
@@ -318,7 +324,7 @@ async def google_auth(body: GoogleAuthIn):
         org = await DB.org_get(user["org_id"])
         token = create_token(user["id"], user["org_id"])
         return {"access_token": token, "token_type": "bearer",
-                "user": {**{k: user[k] for k in ["id","email","full_name","role","is_owner","org_id"]},
+                "user": {**{k: user[k] for k in ["id","email","full_name","role","is_owner","org_id","is_onboarded"]},
                          "org_name": org["name"] if org else ""}}
     else:
         # New user → auto-register with Google account
@@ -337,7 +343,8 @@ async def google_auth(body: GoogleAuthIn):
         token = create_token(user_id, org_id)
         return {"access_token": token, "token_type": "bearer",
                 "user": {"id": user_id, "email": email, "full_name": full_name,
-                         "org_id": org_id, "org_name": org_name, "role": "admin", "is_owner": True}}
+                         "org_id": org_id, "org_name": org_name, "role": "admin", 
+                         "is_owner": True, "is_onboarded": False}}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -629,6 +636,26 @@ async def delete_playlist(pl_id: str, u=Depends(current_user)):
 class BillingActivateIn(BaseModel):
     plan: str         # day, week, month
     ref: Optional[str] = None
+
+@api.post("/billing/checkout")
+async def create_checkout(body: BillingActivateIn, u=Depends(current_user)):
+    """Creates a Viva Wallet checkout session url"""
+    # Funcționalitate de bază (Mock). Deocamdată returnăm url-ul direct către plata viva folosind linkurile tale.
+    # Când ai token-ul API, un request aici ar cere un OrderCode.
+    keys = {"day": "PLACEHOLDER_1ZI", "week": "PLACEHOLDER_1SAP", "month": "PLACEHOLDER_1LUNA"}
+    ref = keys.get(body.plan)
+    if not ref:
+        raise HTTPException(400, "Invalid plan")
+    return {"url": f"https://www.vivapayments.com/web/checkout?ref={ref}&merchantTrns={u['org_id']}_{body.plan}"}
+
+@api.post("/webhooks/viva")
+async def viva_webhook(request: Request):
+    """Webhook apelat de Viva Wallet la o plată confirmată."""
+    body = await request.json()
+    event_type = body.get("EventData", {}).get("StatusId")
+    if event_type == "F": # Finished
+        pass
+    return {"status": "ok"}
 
 @api.post("/billing/activate")
 async def activate_plan(body: BillingActivateIn, u=Depends(current_user)):

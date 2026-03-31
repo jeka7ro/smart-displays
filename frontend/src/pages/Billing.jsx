@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { billing, billing as billingApi } from '../lib/api';
+import { billing as billingApi } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import { CreditCard, CheckCircle, Zap, Tv, Crown, Calendar, ExternalLink, AlertTriangle } from 'lucide-react';
+import { CreditCard, CheckCircle, Zap, Tv, Crown, Calendar, ExternalLink, AlertTriangle, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 
 const PLANS = [
@@ -22,17 +22,23 @@ const PLANS = [
   },
 ];
 
-// Payment links — replace with real Viva Wallet links
-const VIVA_LINKS = {
-  day:   'https://www.vivapayments.com/web/checkout?ref=PLACEHOLDER_1ZI',
-  week:  'https://www.vivapayments.com/web/checkout?ref=PLACEHOLDER_1SAP',
-  month: 'https://www.vivapayments.com/web/checkout?ref=PLACEHOLDER_1LUNA',
-};
-
 export default function Billing() {
   const { user, refreshUser } = useAuth();
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(null); // plan key being paid
+
+  const handleCheckout = async (planKey) => {
+    setPaying(planKey);
+    try {
+      const res = await billingApi.checkout({ plan: planKey });
+      if (res.data?.url) window.open(res.data.url, '_blank');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Eroare la inițierea plății');
+    } finally {
+      setPaying(null);
+    }
+  };
 
   useEffect(() => {
     billingApi.get()
@@ -127,10 +133,14 @@ export default function Billing() {
                     </li>
                   ))}
                 </ul>
-                <a href={VIVA_LINKS[p.key]} target="_blank" rel="noopener noreferrer"
-                  className={`sd-btn bg-gradient-to-r ${p.color} text-white justify-center shadow-lg hover:opacity-90 w-full`}>
-                  <ExternalLink className="w-4 h-4" /> Plătește acum
-                </a>
+                <button
+                  onClick={() => handleCheckout(p.key)}
+                  disabled={paying === p.key}
+                  className={`sd-btn bg-gradient-to-r ${p.color} text-white justify-center shadow-lg hover:opacity-90 w-full disabled:opacity-60`}>
+                  {paying === p.key
+                    ? <Loader className="w-4 h-4 animate-spin" />
+                    : <><ExternalLink className="w-4 h-4" /> Plătește acum</>}
+                </button>
               </div>
             );
           })}
