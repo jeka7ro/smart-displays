@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,107 +9,231 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #0a0e1a;
+  background: #07091a;
   color: #fff;
   margin: 0;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* macOS Tahoe: soft mesh background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 10%, rgba(99,87,255,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 80%, rgba(120,80,255,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 0%, rgba(80,120,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+body > * { position: relative; z-index: 1; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #243050; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+::-webkit-scrollbar-thumb { background: rgba(99,87,255,0.3); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(99,87,255,0.5); }
 
-/* Input base */
+/* ─── macOS Tahoe Input ────────────────────────────────── */
 .sd-input {
-  @apply w-full bg-surface-700 border border-white/10 rounded-lg px-3 py-2 text-sm text-white
-         placeholder-white/30 focus:outline-none focus:border-brand-500 transition-colors;
+  @apply w-full border rounded-2xl px-4 py-2.5 text-sm text-white
+         placeholder-white/25 focus:outline-none transition-all duration-200;
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+}
+.sd-input:focus {
+  border-color: rgba(99,87,255,0.5);
+  background: rgba(255,255,255,0.07);
+  box-shadow: 0 0 0 3px rgba(99,87,255,0.15), 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .sd-label {
-  @apply block text-xs text-white/50 uppercase tracking-wider mb-1.5 font-medium;
+  @apply block text-xs text-white/40 uppercase tracking-widest mb-1.5 font-semibold;
 }
 
-/* Card */
+/* ─── macOS Tahoe Card ─────────────────────────────────── */
 .sd-card {
-  @apply bg-surface-800 border border-white/[0.06] rounded-2xl p-5;
+  @apply rounded-3xl p-5;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 1px 1px rgba(255,255,255,0.04) inset,
+    0 8px 40px rgba(0,0,0,0.25);
 }
 
-/* Button variants */
+/* ─── Buttons ──────────────────────────────────────────── */
 .sd-btn {
-  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
+  @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl font-semibold text-sm
          transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
 }
 .sd-btn-primary {
-  @apply sd-btn bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/20;
+  @apply sd-btn text-white;
+  background: linear-gradient(135deg, #5b4fff 0%, #7c3aed 100%);
+  box-shadow: 0 4px 20px rgba(91,79,255,0.35), 0 1px 0 rgba(255,255,255,0.1) inset;
+}
+.sd-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 28px rgba(91,79,255,0.5), 0 1px 0 rgba(255,255,255,0.15) inset;
+  transform: translateY(-1px);
 }
 .sd-btn-ghost {
-  @apply sd-btn border border-white/10 hover:border-white/20 text-white/70 hover:text-white;
+  @apply sd-btn text-white/60 hover:text-white;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.sd-btn-ghost:hover:not(:disabled) {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.12);
 }
 .sd-btn-danger {
-  @apply sd-btn bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/20;
+  @apply sd-btn text-red-400;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.15);
+}
+.sd-btn-danger:hover:not(:disabled) {
+  background: rgba(239,68,68,0.2);
 }
 
-/* Badge */
+/* ─── Badge ────────────────────────────────────────────── */
 .sd-badge {
-  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider;
+  @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider;
+  backdrop-filter: blur(8px);
 }
-.sd-badge-green  { @apply sd-badge bg-green-500/15 text-green-400; }
-.sd-badge-red    { @apply sd-badge bg-red-500/15 text-red-400; }
-.sd-badge-yellow { @apply sd-badge bg-amber-500/15 text-amber-400; }
-.sd-badge-blue   { @apply sd-badge bg-brand-500/15 text-brand-400; }
+.sd-badge-green  { @apply sd-badge; background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.15); }
+.sd-badge-red    { @apply sd-badge; background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.15); }
+.sd-badge-yellow { @apply sd-badge; background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.15); }
+.sd-badge-blue   { @apply sd-badge; background: rgba(91,79,255,0.12); color: #a78bfa; border: 1px solid rgba(91,79,255,0.15); }
 
-/* Table */
+/* ─── Table ────────────────────────────────────────────── */
 .sd-table { @apply w-full text-sm; }
-.sd-table th { @apply text-left text-xs text-white/40 uppercase tracking-wider px-3 py-2 font-medium; }
-.sd-table td { @apply px-3 py-3 text-white/80 border-t border-white/[0.04]; }
-.sd-table tr:hover td { @apply bg-white/[0.02]; }
+.sd-table th { @apply text-left text-xs text-white/30 uppercase tracking-wider px-4 py-3 font-semibold; }
+.sd-table td { @apply px-4 py-3.5 text-white/75; border-top: 1px solid rgba(255,255,255,0.04); }
+.sd-table tr:hover td { background: rgba(255,255,255,0.025); }
 
-/* Custom PhoneInput styling for dark mode */
-.sd-phone-input {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-}
-.sd-phone-input .PhoneInputCountry {
-  padding: 0 0.75rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-right: none;
-  border-radius: 0.5rem 0 0 0.5rem;
+/* ─── Phone Field — un singur container rotunjit ─────────── */
+.sd-phone-box {
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
-}
-.sd-phone-input .PhoneInputCountrySelect {
-  opacity: 0;
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  cursor: pointer;
-  z-index: 10;
-}
-.sd-phone-input .PhoneInputInput {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 0 0.5rem 0.5rem 0;
-  padding: 0 1rem 0 0.5rem;
   height: 2.75rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  transition: all 0.2s;
+  cursor: text;
+}
+.sd-phone-box:focus-within {
+  border-color: rgba(99,87,255,0.5);
+  background: rgba(255,255,255,0.07);
+  box-shadow: 0 0 0 3px rgba(99,87,255,0.15);
+}
+
+/* Butonul selector de țară */
+.sd-phone-country {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px 0 12px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: rgba(255,255,255,0.5);
+  transition: background 0.15s;
+}
+.sd-phone-country:hover { background: rgba(255,255,255,0.04); }
+
+.sd-phone-flag { font-size: 18px; line-height: 1; }
+.sd-phone-prefix { font-size: 0.8125rem; font-weight: 600; color: rgba(255,255,255,0.75); letter-spacing: 0.3px; }
+.sd-phone-arrow { width: 10px; height: 6px; color: rgba(255,255,255,0.3); }
+
+/* Separator vertical */
+.sd-phone-sep {
+  width: 1px;
+  height: 60%;
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+/* Câmpul de număr */
+.sd-phone-num {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0 12px;
+  height: 100%;
   color: white;
   font-size: 0.875rem;
-  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.3px;
+}
+.sd-phone-num::placeholder { color: rgba(255,255,255,0.2); }
+
+/* Dropdown */
+.sd-phone-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(15,18,35,0.95);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  overflow: hidden;
+  animation: slideDown 0.15s cubic-bezier(0.16,1,0.3,1) both;
+}
+.sd-phone-search-wrap { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.sd-phone-search {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.8125rem;
   outline: none;
+  font-family: 'Inter', sans-serif;
 }
-.sd-phone-input .PhoneInputInput:focus {
-  border-color: rgba(99, 102, 241, 0.5);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+.sd-phone-search::placeholder { color: rgba(255,255,255,0.3); }
+.sd-phone-list { max-height: 220px; overflow-y: auto; padding: 4px; }
+.sd-phone-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  color: rgba(255,255,255,0.75);
+  font-size: 0.8125rem;
+  transition: background 0.1s;
 }
-.sd-phone-input:focus-within .PhoneInputCountry {
-  border-color: rgba(99, 102, 241, 0.5);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: -2px 0 0 0px rgba(99, 102, 241, 0.2), 0 2px 0 0px rgba(99, 102, 241, 0.2), 0 -2px 0 0px rgba(99, 102, 241, 0.2);
-}
+.sd-phone-opt:hover { background: rgba(255,255,255,0.06); color: white; }
+.sd-phone-opt.active { background: rgba(99,87,255,0.15); color: white; }
+.sd-phone-opt-label { flex: 1; }
+.sd-phone-opt-prefix { color: rgba(255,255,255,0.35); font-size: 0.75rem; font-weight: 600; }
+
+
+/* ─── Animations ───────────────────────────────────────── */
+@keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.96) } to { opacity: 1; transform: scale(1) } }
+
+.animate-fade-in   { animation: fadeIn  0.25s ease-out both; }
+.animate-slide-up  { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-down { animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-scale-in  { animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both; }

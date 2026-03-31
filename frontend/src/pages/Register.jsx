@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { Tv, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
-import PhoneInput from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
+import PhoneField from '../components/PhoneField.jsx';
 import GoogleButton from '../components/GoogleButton.jsx';
 
 export default function Register() {
@@ -151,15 +150,7 @@ export default function Register() {
 
               <div>
                 <label className="sd-label">Telefon internațional</label>
-                <div className="sd-phone-wrapper">
-                  <PhoneInput
-                    international
-                    defaultCountry="RO"
-                    value={form.phone}
-                    onChange={handlePhone}
-                    className="sd-phone-input"
-                  />
-                </div>
+                <PhoneField value={form.phone} onChange={val => setForm(f => ({ ...f, phone: val }))} />
               </div>
             </div>
 
