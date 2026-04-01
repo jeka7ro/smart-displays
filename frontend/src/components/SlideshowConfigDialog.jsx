@@ -25,7 +25,7 @@ export const SlideshowConfigDialog = ({ open, onOpenChange, onConfirm, count, se
         if (fileUrl.startsWith('http')) return fileUrl;
         if (fileUrl.startsWith('/api/uploads') || fileUrl.startsWith('/uploads')) {
             const cleanUrl = fileUrl.startsWith('/api') ? fileUrl.substring(4) : fileUrl;
-            return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}${cleanUrl}`;
+            return `${(import.meta.env.PROD ? '' : 'http://localhost:8000')}${cleanUrl}`;
         }
         if (fileUrl.startsWith('/')) return fileUrl;
         return fileUrl;

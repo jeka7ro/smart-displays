@@ -1621,7 +1621,7 @@ export const Playlists = () => {
                                       if (!url) return '';
                                       if (url.startsWith('/api/uploads') || url.startsWith('/uploads')) {
                                         const cleanUrl = url.startsWith('/api') ? url.substring(4) : url;
-                                        return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}${cleanUrl}`;
+                                        return `${(import.meta.env.PROD ? '' : 'http://localhost:8000')}${cleanUrl}`;
                                       }
                                       return url;
                                     };

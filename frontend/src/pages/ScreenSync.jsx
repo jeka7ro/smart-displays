@@ -10,7 +10,7 @@ import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 export const ScreenSync = () => {
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+  const BACKEND_URL = (import.meta.env.PROD ? '' : 'http://localhost:8000');
   const getFileUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;

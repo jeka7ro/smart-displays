@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { DashboardLayout } from '../components/DashboardLayout';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+const API_URL = (import.meta.env.PROD ? '' : 'http://localhost:8000');
 
 const AudioStreaming = () => {
     const [playlists, setPlaylists] = useState([]);

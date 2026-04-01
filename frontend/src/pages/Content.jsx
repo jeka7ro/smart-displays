@@ -557,7 +557,7 @@ export const Content = () => {
     // If it's a relative URL, prepend backend URL
     if (fileUrl.startsWith('/api/uploads') || fileUrl.startsWith('/uploads')) {
       const cleanUrl = fileUrl.startsWith('/api') ? fileUrl.substring(4) : fileUrl;
-      return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}${cleanUrl}`;
+      return `${(import.meta.env.PROD ? '' : 'http://localhost:8000')}${cleanUrl}`;
     }
     // Otherwise it's an external URL (or direct Supabase on localhost)
     return fileUrl;
@@ -639,8 +639,8 @@ export const Content = () => {
     if (viewMode === 'list') {
       return (
         <div className="overflow-hidden rounded-xl">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+          <div className="overflow-x-auto w-full custom-scrollbar pb-2">
+            <table className="w-full min-w-[900px] border-collapse">
               <thead>
                 <tr className="border-b border-slate-200/60 bg-gradient-to-r from-slate-50 to-slate-100/50">
                   <th className="p-4 text-left w-10">
@@ -1039,8 +1039,8 @@ export const Content = () => {
 
   return (
     <DashboardLayout>
-      <div className="animate-in" data-testid="content-page">
-        <div className="flex items-center justify-between mb-6">
+      <div className="animate-in flex flex-col flex-1 min-w-0 h-full" data-testid="content-page">
+        <div className="flex items-center justify-between mb-2 md:mb-6">
           <div>
             <h1 className="text-3xl font-extrabold bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent mb-1 tracking-tight">Bibliotecă Conținut</h1>
             <p className="text-sm text-slate-400 font-medium">Gestionează imagini, video-uri și conținut media</p>
@@ -1372,9 +1372,9 @@ export const Content = () => {
           </div>
 
           {/* Main Layout Body */}
-          <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-13rem)]">
+          <div className="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-13rem)] flex-1 min-h-0">
             {/* Sidebar Column (Left) */}
-            <div className="w-full lg:w-72 xl:w-80 shrink-0 h-full overflow-hidden flex flex-col">
+            <div className="w-full lg:w-72 xl:w-80 shrink-0 lg:h-full max-h-[400px] lg:max-h-none overflow-hidden flex flex-col">
               <FolderSidebar
                 folders={folders}
                 selectedFolder={selectedFolder}
@@ -1395,7 +1395,7 @@ export const Content = () => {
             </div>
 
             {/* Right Column (Content) */}
-            <div className="flex-1 flex flex-col w-full min-w-0">
+            <div className="flex-1 flex flex-col w-full min-w-0 min-h-[500px] lg:min-h-0">
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col h-full">
                 {/* Header */}
                 <div className="px-4 py-3 flex items-center justify-between border-b border-slate-100/80 shrink-0">

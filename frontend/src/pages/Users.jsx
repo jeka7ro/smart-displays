@@ -196,7 +196,7 @@ export const Users = () => {
       if (url.startsWith('http')) return url; // Already full URL (Supabase)
       if (url.startsWith('/api/')) {
         // Local storage - backend is on port 8000
-        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+        const backendUrl = (import.meta.env.PROD ? '' : 'http://localhost:8000');
         return `${backendUrl}${url}`;
       }
       return url;

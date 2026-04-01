@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Play, Pause, SkipForward, Volume2, Music, Radio, AlertCircle } from 'lucide-react';
 import ReactPlayer from 'react-player';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+const API_URL = (import.meta.env.PROD ? '' : 'http://localhost:8000');
 
 const AudioPlayer = () => {
     const { playlistId } = useParams();

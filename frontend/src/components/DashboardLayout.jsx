@@ -53,6 +53,7 @@ export const DashboardLayout = ({ children }) => {
     const saved = localStorage.getItem('sidebarCollapsed');
     return saved === 'true';
   });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const location = useLocation();
   const navigate = useNavigate();
@@ -87,14 +88,39 @@ export const DashboardLayout = ({ children }) => {
   };
 
   return (
-    <div className="flex min-h-screen relative">
+    <div className="flex min-h-screen relative overflow-x-hidden w-full">
       <div className="fixed inset-0 z-[-1] pointer-events-none" style={{
          background: 'linear-gradient(105deg, #e3dede 0%, #b7c8ce 45%, #b7c8ce 55%, #dfdad9 100%)'
       }}></div>
+
+      {/* Mobile Top Bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#0f172a]/95 backdrop-blur-md border-b border-slate-700 z-[40] flex items-center justify-between px-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setMobileMenuOpen(true)} className="p-2 -ml-2 text-white hover:bg-white/10 rounded-lg">
+             <Menu className="w-6 h-6" />
+          </button>
+          <img src="/getapp_smart_displays_white.png" alt="GET App" className="h-[28px] object-contain" />
+        </div>
+        <div className="flex items-center gap-3">
+           <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-xs font-bold text-white uppercase shadow-inner cursor-pointer" onClick={handleLogout}>
+              {getInitials(user?.full_name || user?.email)}
+           </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-[45] bg-slate-900/50 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-[17rem]'} h-screen fixed left-0 top-0 z-50 flex flex-col transition-all duration-300 ease-in-out glass-panel !rounded-none !border-y-0 !border-l-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)]`} data-testid="sidebar">
-        <div className={`px-2 border-b border-white/40 bg-transparent relative flex items-center ${isSidebarCollapsed ? 'justify-center' : ''} h-[72px] shrink-0`}>
-          <Link to="/dashboard" className="flex items-center overflow-hidden w-full">
+      <aside className={`
+        fixed left-0 top-0 z-50 flex flex-col h-screen transition-all duration-300 ease-in-out glass-panel !rounded-none !border-y-0 !border-l-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)]
+        ${isSidebarCollapsed ? 'md:w-20 w-[17rem]' : 'w-[17rem]'} 
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `} data-testid="sidebar">
+        <div className={`px-2 border-b border-white/40 bg-transparent relative flex items-center ${isSidebarCollapsed ? 'md:justify-center' : ''} h-[72px] shrink-0`}>
+          <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex items-center overflow-hidden w-full">
             {isSidebarCollapsed ? (
               <div className="w-9 h-9 bg-slate-900 text-white font-black text-lg rounded-xl flex items-center justify-center shrink-0 mx-auto transition-all shadow-md shadow-slate-900/20">
                 G
@@ -113,7 +139,7 @@ export const DashboardLayout = ({ children }) => {
           </Link>
           <button
              onClick={toggleSidebar}
-             className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-slate-300 rounded-full flex items-center justify-center shadow-md text-slate-500 hover:bg-slate-800 hover:border-slate-800 hover:text-white transition-colors z-[60]"
+             className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-slate-300 rounded-full items-center justify-center shadow-md text-slate-500 hover:bg-slate-800 hover:border-slate-800 hover:text-white transition-colors z-[60]"
           >
              {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
@@ -134,12 +160,13 @@ export const DashboardLayout = ({ children }) => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''} ${isSidebarCollapsed ? 'justify-center' : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''} ${isSidebarCollapsed ? 'md:justify-center' : ''}`}
                 data-testid={`nav-${item.path.substring(1)}`}
                 title={isSidebarCollapsed ? t(`sidebar.${item.key}`) : ''}
               >
                 <Icon className="w-5 h-5 shrink-0" />
-                {!isSidebarCollapsed && <span className="animate-in fade-in slide-in-from-left-2 duration-300">{t(`sidebar.${item.key}`)}</span>}
+                <span className={`animate-in fade-in slide-in-from-left-2 duration-300 ${isSidebarCollapsed ? 'md:hidden' : ''}`}>{t(`sidebar.${item.key}`)}</span>
               </Link>
             );
           })}
@@ -160,12 +187,13 @@ export const DashboardLayout = ({ children }) => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''} ${isSidebarCollapsed ? 'justify-center' : ''}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''} ${isSidebarCollapsed ? 'md:justify-center' : ''}`}
                     data-testid={`nav-${item.path.substring(1)}`}
                     title={isSidebarCollapsed ? item.label : ''}
                   >
                     <Icon className="w-5 h-5 shrink-0" />
-                    {!isSidebarCollapsed && <span className="animate-in fade-in slide-in-from-left-2 duration-300">{item.label}</span>}
+                    <span className={`animate-in fade-in slide-in-from-left-2 duration-300 ${isSidebarCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
                   </Link>
                 );
               })}
@@ -209,9 +237,9 @@ export const DashboardLayout = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <div className={`${isSidebarCollapsed ? 'ml-20' : 'ml-[17rem]'} flex-1 min-h-screen transition-all duration-300 ease-in-out flex flex-col`}>
+      <div className={`${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-[17rem]'} flex-1 min-h-screen transition-all duration-300 ease-in-out flex flex-col min-w-0 pt-16 md:pt-0`}>
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-40 px-8 h-[72px] flex items-center border-b border-white/60 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-[0_4px_30px_rgba(0,0,0,0.04)] shrink-0">
+        <header className="hidden md:flex sticky top-0 z-40 px-8 h-[72px] items-center border-b border-white/60 glass-panel !rounded-none !border-x-0 !border-t-0 shadow-[0_4px_30px_rgba(0,0,0,0.04)] shrink-0">
           <div className="flex items-center justify-end gap-5 w-full">
             
             {/* Language Toggle */}
@@ -258,7 +286,7 @@ export const DashboardLayout = ({ children }) => {
                   src={
                     user.avatar_url.startsWith('http')
                       ? user.avatar_url
-                      : `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}${user.avatar_url}`
+                      : `${(import.meta.env.PROD ? '' : 'http://localhost:8000')}${user.avatar_url}`
                   }
                   alt={user?.full_name}
                   className="w-9 h-9 rounded-full object-cover border-2 border-slate-200 shadow-sm"
@@ -272,7 +300,7 @@ export const DashboardLayout = ({ children }) => {
           </div>
         </header>
 
-        <main className="flex-1 p-8" data-testid="main-content">
+        <main className="flex-1 p-4 md:p-8 min-w-0 flex flex-col" data-testid="main-content">
           {children}
         </main>
       </div>
