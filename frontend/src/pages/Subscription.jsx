@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 export const Subscription = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(false);
+  const [loadingId, setLoadingId] = useState(null);
   const [screenCount, setScreenCount] = useState(1);
   const [stats, setStats] = useState({ screens: 0, plan: 'none' });
 
@@ -22,10 +22,10 @@ export const Subscription = () => {
     }).catch(() => {});
   }, []);
 
-  const handleCheckout = async () => {
-    setLoading(true);
+  const handleCheckout = async (planType) => {
+    setLoadingId(planType);
     try {
-      const res = await api.post('/billing/checkout', { plan: 'month', quantity: screenCount });
+      const res = await api.post('/billing/checkout', { plan: planType, quantity: screenCount });
       if (res.data && res.data.url) {
         window.location.href = res.data.url;
       }
@@ -33,20 +33,24 @@ export const Subscription = () => {
       console.error('Checkout error', error);
       toast.error('Eroare la procesarea plății.');
     } finally {
-      setLoading(false);
+      setLoadingId(null);
     }
   };
 
   const isTrial = stats.plan === 'trial' || stats.plan === 'none' || stats.plan === 'free';
-  const pricePerMonth = 18.15;
-  const totalPrice = (pricePerMonth * screenCount).toFixed(2);
+
+  const plans = [
+    { id: 'day', name: t('subscription.planDayName'), desc: t('subscription.planDayDesc'), price: 1.21 },
+    { id: 'week', name: t('subscription.planWeekName'), desc: t('subscription.planWeekDesc'), price: 6.05, savings: '-28%' },
+    { id: 'month', name: t('subscription.planMonthName'), desc: t('subscription.planMonthDesc'), price: 18.15, popular: true, savings: '-50%' }
+  ];
 
   return (
     <DashboardLayout>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto" data-testid="subscription-page">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-6xl mx-auto" data-testid="subscription-page">
         
         {/* Header Typography */}
-        <div className="mb-10 text-center md:text-left">
+        <div className="mb-8 text-center md:text-left">
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-800 mb-3">
             {t('subscription.title')}
           </h1>
@@ -57,7 +61,7 @@ export const Subscription = () => {
 
         {/* Hero Banner & Status Info */}
         <div className="glass-card overflow-hidden mb-12 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)]">
-          <div className="h-64 md:h-80 w-full relative bg-slate-900 border-b border-slate-200/50">
+          <div className="h-48 md:h-64 w-full relative bg-slate-900 border-b border-slate-200/50">
             <img 
               src="/images/hero_premium.png" 
               alt="Premium Platform" 
@@ -85,89 +89,126 @@ export const Subscription = () => {
             </div>
           </div>
           
-          <div className="p-8 bg-white/50 backdrop-blur-3xl">
-            <p className="text-slate-600 text-lg md:text-xl font-medium max-w-3xl leading-relaxed">
+          <div className="p-6 bg-white/50 backdrop-blur-3xl">
+            <p className="text-slate-600 text-lg font-medium max-w-3xl leading-relaxed">
                {isTrial ? t('subscription.statusDescTrial') : t('subscription.statusDescActive')}
             </p>
           </div>
         </div>
 
-        {/* Unified SaaS Recurring Plan */}
+        {/* Control & Plans Grid */}
         <div className="mb-12">
-          <h3 className="text-2xl font-bold text-slate-800 mb-6 tracking-tight">
-            {t('subscription.planTitle')}
-          </h3>
           
-          <div className="glass-card p-1">
-            <div className="bg-white/80 backdrop-blur-xl rounded-[22px] p-8 md:p-12 border border-white flex flex-col lg:flex-row gap-12 lg:items-center">
-              
-              <div className="flex-1">
-                <div className="inline-block px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold tracking-widest uppercase text-slate-500 mb-6">
-                  {t('subscription.planName')}
-                </div>
-                <h4 className="text-3xl font-black text-slate-800 mb-4">{t('subscription.planLimits')}</h4>
-                <p className="text-slate-500 text-lg mb-8 leading-relaxed">
-                  {t('subscription.planLimitsDesc')}
-                </p>
-                
-                <div className="flex items-center gap-6 bg-slate-50/80 border border-slate-200 rounded-2xl p-2 max-w-xs shadow-inner">
-                  <button 
-                    onClick={() => setScreenCount(Math.max(1, screenCount - 1))}
-                    className="p-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-slate-600 transition-all active:scale-95 shadow-sm"
-                  >
-                    <Minus className="w-5 h-5"/>
-                  </button>
-                  <span className="flex-1 text-center font-black text-4xl text-slate-800 tracking-tighter">{screenCount}</span>
-                  <button 
-                    onClick={() => setScreenCount(screenCount + 1)}
-                    className="p-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-slate-600 transition-all active:scale-95 shadow-sm"
-                  >
-                    <Plus className="w-5 h-5"/>
-                  </button>
-                </div>
-              </div>
-              
-              <div className="w-px h-64 bg-slate-200 hidden lg:block"></div>
-              
-              <div className="flex-1 flex flex-col items-start lg:items-center text-left lg:text-center">
-                <span className="text-slate-400 font-medium mb-2 uppercase tracking-wide text-sm">{t('subscription.planDesc')}</span>
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-6xl md:text-7xl font-black tracking-tighter text-slate-800">{totalPrice}</span>
-                  <span className="text-2xl font-bold text-slate-400">€</span>
-                </div>
-                <span className="text-slate-500 font-medium mb-10 text-lg">
-                  {screenCount === 1 ? t('subscription.totalTVA', { count: screenCount }) : t('subscription.totalTVAPlural', { count: screenCount })}
-                </span>
-                
-                <button
-                  onClick={handleCheckout}
-                  disabled={loading}
-                  className="w-full max-w-md py-5 rounded-2xl font-bold text-lg text-white bg-slate-900 hover:bg-black transition-all shadow-[0_10px_30px_rgba(0,0,0,0.15)] active:scale-95 disabled:opacity-70 disabled:active:scale-100"
+          {/* Universal Screen Setup */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white/60 backdrop-blur-2xl border border-slate-200/60 p-6 rounded-3xl shadow-sm">
+            <div>
+               <h3 className="text-2xl font-black text-slate-800 tracking-tight">
+                  {t('subscription.planTitle')}
+               </h3>
+               <p className="text-slate-500 font-medium">
+                  {t('subscription.extendLabel')}
+               </p>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <span className="font-bold text-slate-500 uppercase tracking-widest text-xs hidden sm:block">
+                 {t('subscription.selectScreens')}
+              </span>
+              <div className="flex items-center gap-4 bg-slate-100/80 border border-slate-200/80 rounded-[1.25rem] p-1.5 shadow-inner min-w-[160px]">
+                <button 
+                  onClick={() => setScreenCount(Math.max(1, screenCount - 1))}
+                  className="w-12 h-12 flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-200 rounded-[1rem] text-slate-600 transition-all active:scale-95 shadow-sm"
                 >
-                  {loading ? t('subscription.btnProcessing') : t('subscription.btnSubscribe')}
+                  <Minus className="w-5 h-5"/>
                 </button>
-                
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-6 text-center w-full">
-                  {t('subscription.securePayment')}
-                </p>
+                <span className="flex-1 text-center font-black text-2xl text-slate-800 tracking-tighter">
+                  {screenCount}
+                </span>
+                <button 
+                  onClick={() => setScreenCount(screenCount + 1)}
+                  className="w-12 h-12 flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-200 rounded-[1rem] text-slate-600 transition-all active:scale-95 shadow-sm"
+                >
+                  <Plus className="w-5 h-5"/>
+                </button>
               </div>
-
             </div>
           </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {plans.map((plan) => (
+              <div 
+                key={plan.id}
+                className={`flex flex-col relative overflow-hidden transition-all duration-300 ${
+                  plan.popular 
+                    ? 'bg-white/60 backdrop-blur-3xl border-2 border-emerald-400 shadow-[0_20px_40px_-10px_rgba(16,185,129,0.15)] rounded-[2rem] md:-translate-y-2' 
+                    : 'glass-card border border-white/60'
+                } p-8`}
+              >
+                {plan.popular && (
+                  <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-400"></div>
+                )}
+                
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="text-2xl font-black text-slate-800">{plan.name}</h4>
+                  {plan.savings && (
+                    <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 shadow-sm animate-in zoom-in duration-300">
+                      {plan.savings}
+                    </span>
+                  )}
+                </div>
+                <p className="text-slate-500 font-medium mb-8 flex-1">{plan.desc}</p>
+                
+                <div className="mb-8">
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-5xl font-black tracking-tighter text-slate-800">
+                      {(plan.price * screenCount).toFixed(2)}
+                    </span>
+                    <span className="text-xl font-bold text-slate-400">€</span>
+                  </div>
+                  <span className="text-slate-400 font-medium text-sm">
+                    {screenCount === 1 ? t('subscription.totalTVA', { count: screenCount }) : t('subscription.totalTVAPlural', { count: screenCount })}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => handleCheckout(plan.id)}
+                  disabled={loadingId !== null}
+                  className={`w-full py-4 rounded-2xl font-bold text-white transition-all overflow-hidden relative group disabled:opacity-70 disabled:active:scale-100 ${
+                     plan.popular
+                       ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:shadow-[0_10px_25px_rgba(16,185,129,0.4)] hover:opacity-90 active:scale-[0.98]'
+                       : 'bg-slate-900/80 backdrop-blur-xl border border-white/10 hover:bg-black shadow-[0_10px_30px_rgba(0,0,0,0.3)] inset-shadow-white/20 active:scale-[0.98]'
+                  }`}
+                >
+                  <span className="relative z-10 tracking-wide">
+                     {loadingId === plan.id ? t('subscription.btnProcessing') : t('subscription.btnSubscribe')}
+                  </span>
+                  {!plan.popular && (
+                    <div className="absolute inset-0 bg-white/10 blur-md transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                  )}
+                </button>
+                <p className="text-[11px] text-center font-bold uppercase tracking-wider text-slate-400 mt-4 leading-relaxed">
+                  Plan Recurent. <br/>Anulare oricând din cont.
+                </p>
+                
+              </div>
+            ))}
+          </div>
+
         </div>
         
-        {/* Enterprise Block no icons */}
-        <div className="glass-card p-1">
-          <div className="bg-slate-50/50 backdrop-blur-3xl rounded-[22px] p-8 md:p-12 border border-white text-center">
+        {/* Enterprise Block */}
+        <div className="glass-card p-1 mt-12 mb-8">
+          <div className="bg-slate-50/40 backdrop-blur-3xl rounded-[22px] p-8 md:p-12 border border-white text-center">
             <h4 className="text-2xl font-black tracking-tight text-slate-800 mb-4">{t('subscription.customTitle')}</h4>
             <p className="text-slate-500 text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
               {t('subscription.customDesc')}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <a href="mailto:contact@getapp.ro" className="px-8 py-4 bg-slate-200 text-slate-800 rounded-2xl font-bold hover:bg-slate-300 transition-colors shadow-sm">
+              <a href="mailto:contact@getapp.ro" className="px-8 py-4 bg-slate-200/80 backdrop-blur-md text-slate-800 rounded-2xl font-bold hover:bg-slate-300 transition-colors shadow-sm">
                 {t('subscription.btnEmail')}
               </a>
-              <a href="tel:+40" className="px-8 py-4 bg-white text-slate-800 border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm">
+              <a href="tel:+40" className="px-8 py-4 bg-white/80 backdrop-blur-md text-slate-800 border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm">
                 {t('subscription.btnCall')}
               </a>
             </div>

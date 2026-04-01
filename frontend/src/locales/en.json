@@ -65,6 +65,14 @@
     "customDesc": "Need more than 50 screens, a dedicated SLA, or on-premise installation? Let's build a B2B solution together.",
     "btnEmail": "Email Us",
     "btnCall": "Call Support",
-    "securePayment": "Secure Payments. Activation is instant."
+    "securePayment": "Secure Payments. Activation is instant.",
+    "planDayName": "1 Day",
+    "planDayDesc": "Full access for 24 hours.",
+    "planWeekName": "1 Week",
+    "planWeekDesc": "Full access for 7 days.",
+    "planMonthName": "1 Month",
+    "planMonthDesc": "Full access for 30 days.",
+    "extendLabel": "How it works? Choose how many screens you need and pay for the desired validity.",
+    "selectScreens": "Number of screens:"
   }
 }

@@ -64,6 +64,14 @@
     "customDesc": "Ai nevoie de >50 ecrane, SLA dedicat sau instalare locală? Contactează-ne pentru o soluție B2B.",
     "btnEmail": "Trimite Email",
     "btnCall": "Contactează-ne",
-    "securePayment": "Plăți Securizate. Activarea se face automat."
+    "securePayment": "Plăți Securizate. Activarea se face automat.",
+    "planDayName": "1 Zi",
+    "planDayDesc": "Acces complet timp de 24 ore.",
+    "planWeekName": "1 Săptămână",
+    "planWeekDesc": "Acces complet timp de 7 zile.",
+    "planMonthName": "1 Lună",
+    "planMonthDesc": "Acces complet 30 de zile.",
+    "extendLabel": "Cum funcționează? Alegi câte ecrane folosești și achiți valabilitatea dorită pentru ele.",
+    "selectScreens": "Număr ecrane:"
   }
 }
