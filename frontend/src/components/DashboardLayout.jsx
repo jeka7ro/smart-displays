@@ -88,17 +88,17 @@ export const DashboardLayout = ({ children }) => {
 
   return (
     <div className="flex min-h-screen relative">
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 relative z-[-1] to-slate-200/50 pointer-events-none"></div>
+      <div className="fixed inset-0 z-[-1] pointer-events-none" style={{
+         background: 'linear-gradient(105deg, #e3dede 0%, #b7c8ce 45%, #b7c8ce 55%, #dfdad9 100%)'
+      }}></div>
       {/* Sidebar */}
       <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-[17rem]'} h-screen fixed left-0 top-0 z-50 flex flex-col transition-all duration-300 ease-in-out glass-panel !rounded-none !border-y-0 !border-l-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)]`} data-testid="sidebar">
         <div className={`px-2 border-b border-white/40 bg-transparent relative flex items-center ${isSidebarCollapsed ? 'justify-center' : ''} h-[72px] shrink-0`}>
           <Link to="/dashboard" className="flex items-center overflow-hidden w-full">
             {isSidebarCollapsed ? (
-              <img
-                src="/favicon.png"
-                alt="Smart Displays Logo"
-                className="w-10 h-10 object-contain shrink-0 mx-auto transition-all duration-300"
-              />
+              <div className="w-9 h-9 bg-slate-900 text-white font-black text-lg rounded-xl flex items-center justify-center shrink-0 mx-auto transition-all shadow-md shadow-slate-900/20">
+                G
+              </div>
             ) : (
               <div className="animate-in fade-in duration-300 flex items-center w-full">
                 <div className="flex items-center justify-center w-full px-1 translate-x-3">
@@ -113,7 +113,7 @@ export const DashboardLayout = ({ children }) => {
           </Link>
           <button
              onClick={toggleSidebar}
-             className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-slate-300 rounded-full flex items-center justify-center shadow-md text-slate-500 hover:bg-[#00ced1] hover:border-[#00ced1] hover:text-white transition-colors z-[60]"
+             className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-slate-300 rounded-full flex items-center justify-center shadow-md text-slate-500 hover:bg-slate-800 hover:border-slate-800 hover:text-white transition-colors z-[60]"
           >
              {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
