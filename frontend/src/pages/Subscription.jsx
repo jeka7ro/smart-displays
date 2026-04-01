@@ -50,11 +50,11 @@ export const Subscription = () => {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-6xl mx-auto" data-testid="subscription-page">
         
         {/* Header Typography */}
-        <div className="mb-8 text-center md:text-left">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-800 mb-3">
+        <div className="mb-6 text-center md:text-left">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-800 mb-2">
             {t('subscription.title')}
           </h1>
-          <p className="text-xl text-slate-500 font-medium">
+          <p className="text-lg text-slate-500 font-medium">
             {t('subscription.subtitle')}
           </p>
         </div>
@@ -198,17 +198,22 @@ export const Subscription = () => {
         </div>
         
         {/* Enterprise Block */}
-        <div className="glass-card p-1 mt-12 mb-8">
-          <div className="bg-slate-50/40 backdrop-blur-3xl rounded-[22px] p-8 md:p-12 border border-white text-center">
-            <h4 className="text-2xl font-black tracking-tight text-slate-800 mb-4">{t('subscription.customTitle')}</h4>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
+        <div className="mt-16 mb-8 relative rounded-[2rem] overflow-hidden p-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-black rounded-[2rem]"></div>
+          
+          <div className="relative bg-[#0B0F19]/60 backdrop-blur-3xl rounded-[1.8rem] p-8 md:p-12 border border-white/10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] pointer-events-none"></div>
+            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-[80px] pointer-events-none"></div>
+            
+            <h4 className="text-3xl font-black tracking-tight text-white mb-4 relative z-10">{t('subscription.customTitle')}</h4>
+            <p className="text-slate-300 text-lg max-w-2xl mx-auto mb-8 leading-relaxed relative z-10 font-medium">
               {t('subscription.customDesc')}
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <a href="mailto:contact@getapp.ro" className="px-8 py-4 bg-slate-200/80 backdrop-blur-md text-slate-800 rounded-2xl font-bold hover:bg-slate-300 transition-colors shadow-sm">
+            <div className="flex flex-col sm:flex-row justify-center gap-5 relative z-10">
+              <a href="mailto:contact@getapp.ro" className="px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl font-bold hover:bg-white/20 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:scale-[1.02] active:scale-95">
                 {t('subscription.btnEmail')}
               </a>
-              <a href="tel:+40" className="px-8 py-4 bg-white/80 backdrop-blur-md text-slate-800 border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm">
+              <a href="tel:+40" className="px-8 py-4 bg-white text-slate-900 rounded-2xl font-bold hover:bg-slate-100 transition-all shadow-[0_4px_20px_rgba(255,255,255,0.1)] hover:scale-[1.02] active:scale-95">
                 {t('subscription.btnCall')}
               </a>
             </div>
