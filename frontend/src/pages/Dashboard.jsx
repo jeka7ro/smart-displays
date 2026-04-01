@@ -91,39 +91,39 @@ export const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="animate-in" data-testid="dashboard-page">
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-2">
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight mb-1">
             Bine ai venit, {user?.full_name}
           </h1>
-          <p className="text-slate-500 text-lg">
+          <p className="text-slate-500 text-sm font-medium">
             Aici este prezentarea generală a sistemului Screen Media
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {statCards.map((stat) => {
             const Icon = stat.icon;
-            const bgColor = `bg-${stat.color}-100`;
+            const bgColor = `bg-${stat.color}-100/50`;
             const textColor = `text-${stat.color}-600`;
 
             return (
               <div
                 key={stat.label}
-                className="glass-card p-6 cursor-pointer transition-all hover:shadow-lg hover:scale-105 active:scale-100"
+                className="bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-slate-300"
                 data-testid={stat.testId}
                 onClick={() => navigate(stat.link)}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-slate-500 text-sm font-medium mb-1">
+                    <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide mb-1">
                       {stat.label}
                     </p>
-                    <p className="text-3xl font-bold text-slate-800">
+                    <p className="text-2xl font-black text-slate-800 leading-none">
                       {stat.value}
                     </p>
                   </div>
-                  <div className={`p-3 rounded-2xl ${bgColor}`}>
-                    <Icon className={`w-6 h-6 ${textColor}`} />
+                  <div className={`p-2.5 rounded-lg ${bgColor}`}>
+                    <Icon className={`w-5 h-5 ${textColor}`} />
                   </div>
                 </div>
               </div>
