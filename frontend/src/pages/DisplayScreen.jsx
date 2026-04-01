@@ -58,7 +58,6 @@ const getYouTubeEmbedUrl = (url) => {
 export const DisplayScreen = () => {
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
-  const securityCodeParam = searchParams.get('code');
   const isPreview = searchParams.get('preview') === 'true';
   const [displayData, setDisplayData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -68,6 +67,8 @@ export const DisplayScreen = () => {
   const [securityCode, setSecurityCode] = useState('');
   const [needsAuth, setNeedsAuth] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(null);
+  const [demoSeconds, setDemoSeconds] = useState(0);
+  const [plan, setPlan] = useState('trial');
   const isDebug = searchParams.get('debug') === 'true';
 
   // ===== ANTI-STANDBY =====
@@ -145,11 +146,13 @@ export const DisplayScreen = () => {
       }
 
       setDisplayData(data);
+      setPlan(data.plan || 'trial');
+      setDemoSeconds(data.daily_used_seconds || 0);
       setNeedsAuth(false);
       setLoading(false);
 
       if (data.screen?.id && !isPreview) {
-        axios.post(`${API}/screens/${data.screen.id}/heartbeat`).catch(() => { });
+        axios.post(`${API}/display/${slug}/heartbeat`).catch(() => { });
       }
 
       // Pre-cache all media URLs via Service Worker to reduce Supabase egress (Only for physical TVs, not Dashboard previews)
@@ -285,7 +288,12 @@ export const DisplayScreen = () => {
           }
           // Piggyback heartbeat on every poll — keeps status accurate
           if (newData?.screen?.id) {
-            axios.post(`${API}/screens/${newData.screen.id}/heartbeat`).catch(() => { });
+            axios.post(`${API}/display/${slug}/heartbeat`).then(res => {
+                if (res.data?.daily_used_seconds !== undefined) {
+                    setDemoSeconds(res.data.daily_used_seconds);
+                    setPlan(res.data.plan || 'trial');
+                }
+            }).catch(() => { });
           }
         })
         .catch(err => console.debug("Poll failed", err));
@@ -358,20 +366,22 @@ export const DisplayScreen = () => {
   // Keeps the TV marked as 'online' in the admin panel even when content polling fails
   useEffect(() => {
     if (isPreview) return; // Don't send heartbeats from Dashboard iframes
-    // Don't send until we know the screen ID
     if (!displayData?.screen?.id) return;
-
-    const screenId = displayData.screen.id;
 
     // Send immediately on mount, then every 60s
     const sendHeartbeat = () => {
-      axios.post(`${API}/screens/${screenId}/heartbeat`).catch(() => { /* silent */ });
+      axios.post(`${API}/display/${slug}/heartbeat`).then(res => {
+        if (res.data?.daily_used_seconds !== undefined) {
+          setDemoSeconds(res.data.daily_used_seconds);
+          setPlan(res.data.plan || 'trial');
+        }
+      }).catch(() => { /* silent */ });
     };
 
     sendHeartbeat();
     const hbInterval = setInterval(sendHeartbeat, 60000);
     return () => clearInterval(hbInterval);
-  }, [displayData?.screen?.id, isPreview]);
+  }, [displayData?.screen?.id, isPreview, slug]);
 
   // Listen for config updates from ScreenDesigner (cross-tab refresh)
   useEffect(() => {
@@ -427,6 +437,22 @@ export const DisplayScreen = () => {
           <div className="text-white text-xl font-bold">{error}</div>
           <button onClick={() => loadDisplayData()} className="mt-4 text-xs text-white/50 underline">Reîncearcă</button>
         </div>
+      </div>
+    );
+  }
+
+  // Format demo time remaining
+  const remainingSeconds = Math.max(0, 300 - demoSeconds);
+  const isDemoExpired = (plan === 'trial' || plan === 'free' || plan === 'none') && demoSeconds >= 300;
+
+  if (isDemoExpired) {
+    return (
+      <div className="display-fullscreen flex flex-col items-center justify-center bg-black text-white p-12 text-center" style={{ zIndex: 99999 }}>
+        <h1 className="text-6xl font-black mb-6 text-red-500">Timp Expirat</h1>
+        <p className="text-3xl text-slate-300 font-medium max-w-4xl leading-relaxed">
+          Acest ecran rulează pe o versiune DEMO (Limită de 5 minute/zi). <br/><br/>
+          Te rugăm să achiziționezi un abonament Premium din contul tău pentru rulare 24/7, fără întreruperi.
+        </p>
       </div>
     );
   }
@@ -637,6 +663,17 @@ export const DisplayScreen = () => {
 
   return (
     <div className="display-fullscreen relative bg-black font-sans">
+      {/* DEMO Overlay */}
+      {(plan === 'trial' || plan === 'free' || plan === 'none') && !isPreview && (
+        <div className="absolute top-6 left-6 z-[9999] bg-black/80 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 shadow-2xl flex items-center gap-4 animate-in fade-in duration-1000">
+          <span className="text-white font-black tracking-widest text-xl uppercase">DEMO MODE</span>
+          <div className="w-px h-8 bg-white/20"></div>
+          <span className="text-rose-400 font-mono text-2xl font-bold">
+            {Math.floor(remainingSeconds / 60).toString().padStart(2, '0')}:{(remainingSeconds % 60).toString().padStart(2, '0')}
+          </span>
+        </div>
+      )}
+
       {/* Content zones wrapper — only this rotates */}
       <div className="absolute inset-0" style={rotationStyle}>
         {(displayData?.template?.zones || []).map(zone => {

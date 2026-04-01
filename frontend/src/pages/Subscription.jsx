@@ -4,6 +4,7 @@ import { Plus, Minus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import api from '../utils/api';
+import axios from 'axios';
 import { toast } from 'sonner';
 
 export const Subscription = () => {
@@ -12,8 +13,21 @@ export const Subscription = () => {
   const [loadingId, setLoadingId] = useState(null);
   const [screenCount, setScreenCount] = useState(1);
   const [stats, setStats] = useState({ screens: 0, plan: 'none' });
+  const [currency, setCurrency] = useState('EUR');
+  const [isRecurring, setIsRecurring] = useState(true);
 
   useEffect(() => {
+    // GeoIP setup for default currency based on user location
+    axios.get('https://ipapi.co/json/').then(res => {
+      const country = res.data.country_code;
+      if (country === 'RO') setCurrency('RON');
+      else if (res.data.in_eu) setCurrency('EUR');
+      else setCurrency('USD');
+    }).catch(() => {
+        // Fallback to EUR if adblocker blocks ipapi
+        setCurrency('EUR');
+    });
+
     api.get('/dashboard/stats').then(res => {
       setStats({ 
         screens: res.data.screens_total || 0,
@@ -25,7 +39,13 @@ export const Subscription = () => {
   const handleCheckout = async (planType) => {
     setLoadingId(planType);
     try {
-      const res = await api.post('/billing/checkout', { plan: planType, quantity: screenCount });
+      const payload = { 
+          plan: planType, 
+          quantity: screenCount, 
+          currency: currency, 
+          is_recurring: isRecurring 
+      };
+      const res = await api.post('/billing/checkout', payload);
       if (res.data && res.data.url) {
         window.location.href = res.data.url;
       }
@@ -37,12 +57,34 @@ export const Subscription = () => {
     }
   };
 
+  const handleCancel = async () => {
+    if (!window.confirm("Ești sigur că vrei să anulezi reînnoirea planului curent?")) return;
+    setLoadingId("cancel");
+    try {
+      await api.post('/billing/cancel');
+      setStats(prev => ({ ...prev, plan: 'trial' }));
+      toast.success("Abonamentul a fost anulat cu succes.");
+    } catch (error) {
+      toast.error("A apărut o eroare la anularea abonamentului.");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   const isTrial = stats.plan === 'trial' || stats.plan === 'none' || stats.plan === 'free';
+
+  const C_RATES = { EUR: 1.0, RON: 4.97, USD: 1.08 };
+  const C_SYMBOLS = { EUR: '€', RON: 'lei', USD: '$' };
+
+  const getPrice = (eurPrice) => {
+      return (eurPrice * C_RATES[currency]).toFixed(2);
+  };
 
   const plans = [
     { id: 'day', name: t('subscription.planDayName'), desc: t('subscription.planDayDesc'), price: 1.21 },
     { id: 'week', name: t('subscription.planWeekName'), desc: t('subscription.planWeekDesc'), price: 6.05, savings: '-28%' },
-    { id: 'month', name: t('subscription.planMonthName'), desc: t('subscription.planMonthDesc'), price: 18.15, popular: true, savings: '-50%' }
+    { id: 'month', name: t('subscription.planMonthName'), desc: t('subscription.planMonthDesc'), price: 18.15, popular: true, savings: '-50%' },
+    { id: 'year', name: '1 An B2B', desc: 'Preț garantat la plată anuală anticipată.', price: 174.24, savings: '-20%' }
   ];
 
   return (
@@ -99,6 +141,22 @@ export const Subscription = () => {
         {/* Control & Plans Grid */}
         <div className="mb-12">
           
+          {!isTrial && (
+            <div className="bg-emerald-50 border border-emerald-200 p-8 rounded-[2rem] shadow-sm mb-12 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in duration-500">
+                <div>
+                   <h3 className="text-2xl font-black text-emerald-900 tracking-tight mb-2">Abonament Activ</h3>
+                   <p className="text-emerald-700 font-medium">Ai redare nelimitată și funcții premium pentru ecranele tale.</p>
+                </div>
+                <button 
+                  onClick={handleCancel}
+                  disabled={loadingId === "cancel"}
+                  className="px-6 py-3 bg-white text-rose-600 border border-rose-200 font-bold rounded-xl hover:bg-rose-50 shadow-sm transition-all"
+                >
+                  {loadingId === "cancel" ? "Se procesează..." : "Anulează Abonamentul"}
+                </button>
+            </div>
+          )}
+
           {/* Universal Screen Setup */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white/60 backdrop-blur-2xl border border-slate-200/60 p-6 rounded-3xl shadow-sm">
             <div>
@@ -110,10 +168,21 @@ export const Subscription = () => {
                </p>
             </div>
             
-            <div className="flex items-center gap-4">
-              <span className="font-bold text-slate-500 uppercase tracking-widest text-xs hidden sm:block">
-                 {t('subscription.selectScreens')}
-              </span>
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-6">
+              
+              {/* Currency Selector */}
+              <div className="flex bg-slate-100/80 p-1.5 rounded-[1rem] shadow-inner">
+                {['EUR', 'RON', 'USD'].map(c => (
+                    <button 
+                        key={c}
+                        onClick={() => setCurrency(c)}
+                        className={`px-4 py-2 font-bold text-sm rounded-[0.75rem] transition-all ${currency === c ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                        {c}
+                    </button>
+                ))}
+              </div>
+
               <div className="flex items-center gap-4 bg-slate-100/80 border border-slate-200/80 rounded-[1.25rem] p-1.5 shadow-inner min-w-[160px]">
                 <button 
                   onClick={() => setScreenCount(Math.max(1, screenCount - 1))}
@@ -162,9 +231,9 @@ export const Subscription = () => {
                 <div className="mb-8">
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-5xl font-black tracking-tighter text-slate-800">
-                      {(plan.price * screenCount).toFixed(2)}
+                      {getPrice(plan.price * screenCount)}
                     </span>
-                    <span className="text-xl font-bold text-slate-400">€</span>
+                    <span className="text-xl font-bold text-slate-400">{C_SYMBOLS[currency]}</span>
                   </div>
                   <span className="text-slate-400 font-medium text-sm">
                     {screenCount === 1 ? t('subscription.totalTVA', { count: screenCount }) : t('subscription.totalTVAPlural', { count: screenCount })}
@@ -188,11 +257,24 @@ export const Subscription = () => {
                   )}
                 </button>
                 <p className="text-[11px] text-center font-bold uppercase tracking-wider text-slate-400 mt-4 leading-relaxed">
-                  Plan Recurent. <br/>Anulare oricând din cont.
+                  Anulare oricând din setările contului.
                 </p>
                 
               </div>
             ))}
+          </div>
+
+          {/* Recurring Toggle */}
+          <div className="mt-8 flex justify-center">
+             <label className="flex items-center gap-3 cursor-pointer group p-4 rounded-xl hover:bg-slate-50 transition-colors">
+                <input 
+                    type="checkbox" 
+                    checked={isRecurring} 
+                    onChange={(e) => setIsRecurring(e.target.checked)}
+                    className="w-5 h-5 rounded text-emerald-500 border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                />
+                <span className="font-bold text-slate-700 group-hover:text-slate-900">Activează Plata Recurentă (Auto-Reînnoire)</span>
+             </label>
           </div>
 
         </div>

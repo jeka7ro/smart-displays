@@ -593,6 +593,8 @@ async def tv_display(slug: str):
     # Fetch organization to check subscription limits
     org_data = await DB.org_get(screen["org_id"])
     subscription_status = org_data.get("subscription_status", "none") if org_data else "none"
+    plan = org_data.get("plan", "trial") if org_data else "trial"
+    daily_used_seconds = org_data.get("daily_used_seconds", 0) if org_data else 0
 
     # Also extract 'main' zone to support fallback
     main_zone = next((z for z in zones_config if z["zone_id"] == "main"), None)
@@ -605,6 +607,8 @@ async def tv_display(slug: str):
         "content": main_zone["content"] if main_zone else None,
         "playlist": main_zone["playlist"] if main_zone else None,
         "subscription_status": subscription_status,
+        "plan": plan,
+        "daily_used_seconds": daily_used_seconds
     }
 
 @api.post("/display/{slug}/heartbeat")
@@ -612,7 +616,17 @@ async def tv_heartbeat(slug: str):
     screen = await DB.screen_get_by_slug(slug)
     if screen:
         await DB.screen_heartbeat(screen["id"])
-    return {"ok": True}
+        
+        # Track 5-min daily limit
+        org_data = await DB.org_get(screen["org_id"])
+        plan = org_data.get("plan", "trial") if org_data else "trial"
+        daily_used_seconds = 0
+        
+        if plan in ["trial", "free", "none"]:
+            daily_used_seconds = await DB.org_track_daily_usage(screen["org_id"], 10)
+            
+        return {"ok": True, "daily_used_seconds": daily_used_seconds, "plan": plan}
+    return {"ok": False}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -762,16 +776,18 @@ async def delete_playlist(pl_id: str, u=Depends(current_user)):
 # ══════════════════════════════════════════════════════════════════════════════
 
 class BillingActivateIn(BaseModel):
-    plan: str         # day, week, month
+    plan: str         # day, week, month, year
     quantity: int = 1
     ref: Optional[str] = None
+    currency: Optional[str] = "EUR"
+    is_recurring: Optional[bool] = True
 
 @api.post("/billing/checkout")
 async def create_checkout(body: BillingActivateIn, u=Depends(current_user)):
     """Creates a Viva Wallet checkout session url"""
     # Funcționalitate de bază (Mock). Deocamdată returnăm url-ul direct către plata viva folosind linkurile tale.
     # Când ai token-ul API, un request aici ar cere un OrderCode.
-    keys = {"day": "PLACEHOLDER_1ZI", "week": "PLACEHOLDER_1SAP", "month": "PLACEHOLDER_1LUNA"}
+    keys = {"day": "PLACEHOLDER_1ZI", "week": "PLACEHOLDER_1SAP", "month": "PLACEHOLDER_1LUNA", "year": "PLACEHOLDER_1AN"}
     ref = keys.get(body.plan)
     if not ref:
         raise HTTPException(400, "Invalid plan")
@@ -789,8 +805,8 @@ async def viva_webhook(request: Request):
 @api.post("/billing/activate")
 async def activate_plan(body: BillingActivateIn, u=Depends(current_user)):
     """Manually activate a plan (called after payment confirmation)."""
-    PLAN_DAYS = {"day": 1, "week": 7, "month": 30}
-    PLAN_EUR  = {"day": 1.21, "week": 6.05, "month": 18.15}
+    PLAN_DAYS = {"day": 1, "week": 7, "month": 30, "year": 365}
+    PLAN_EUR  = {"day": 1.21, "week": 6.05, "month": 18.15, "year": 174.24}
     if body.plan not in PLAN_DAYS:
         raise HTTPException(400, "Invalid plan")
     now = datetime.now(timezone.utc)
@@ -803,6 +819,14 @@ async def activate_plan(body: BillingActivateIn, u=Depends(current_user)):
         "provider": "viva", "ref": body.ref, "created_at": now
     })
     return {"ok": True, "plan": body.plan, "expires_at": expires.isoformat()}
+
+@api.post("/billing/cancel")
+async def cancel_plan(u=Depends(current_user)):
+    """Cancel currently active premium plan."""
+    now = datetime.now(timezone.utc)
+    # The simplest way to "cancel" is to reset the plan back to 'trial'
+    await DB.org_update_plan(u["org_id"], "trial", now)
+    return {"ok": True, "plan": "trial", "expires_at": now.isoformat()}
 
 @api.get("/billing")
 async def get_billing(u=Depends(current_user)):

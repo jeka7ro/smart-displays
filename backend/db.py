@@ -92,6 +92,12 @@ async def _create_tables() -> None:
         );
     """)
 
+    # Migrare automată pentru Tracker-ul de 5 minute zilnic pe cont trial
+    await pool.execute("""
+        ALTER TABLE organizations ADD COLUMN IF NOT EXISTS daily_used_seconds INTEGER DEFAULT 0;
+        ALTER TABLE organizations ADD COLUMN IF NOT EXISTS last_used_date TEXT DEFAULT '';
+    """)
+
     await pool.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id              TEXT PRIMARY KEY,
@@ -332,6 +338,26 @@ async def org_update_plan(org_id: str, plan: str, expires_at) -> None:
         "UPDATE organizations SET plan=$1, plan_expires_at=$2 WHERE id=$3",
         plan, expires_at, org_id
     )
+
+async def org_track_daily_usage(org_id: str, increment_seconds: int = 10) -> int:
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    org = await org_get(org_id)
+    if not org:
+        return 0
+        
+    last_date = org.get("last_used_date", "")
+    current_used = org.get("daily_used_seconds", 0)
+    
+    if last_date != today:
+        current_used = increment_seconds
+    else:
+        current_used += increment_seconds
+        
+    await _exec(
+        "UPDATE organizations SET daily_used_seconds=$1, last_used_date=$2 WHERE id=$3",
+        current_used, today, org_id
+    )
+    return current_used
 
 
 # ─────────────────────────────────────── USERS ────────────────────────────────
