@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Monitor, UserPlus, Lock, Mail, User, KeyRound, Shield, Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../utils/api';
 
 export const Login = () => {
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get('invite');
+  const { t } = useTranslation();
 
   const [isLogin, setIsLogin] = useState(!inviteCode);
   const [email, setEmail] = useState('');
@@ -142,39 +143,36 @@ export const Login = () => {
             />
           </div>
 
-          {/* Show badge for first user registration */}
-          {!isLogin && isOpenRegistration && (
-            <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2">
-              <Shield className="w-5 h-5 text-amber-600" />
-              <span className="text-sm text-amber-700">
-                Primul cont va fi <strong>Super Admin</strong>
+          {/* Badge: First user registration */}
+          {!isLogin && !inviteValid && isOpenRegistration && (
+            <div className="mb-6 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center">
+              <span className="text-sm text-white/90 font-medium tracking-wide">
+                Configurare Profil <strong className="text-white font-bold tracking-widest pl-1 uppercase">Admin</strong>
               </span>
             </div>
           )}
 
-          {/* Show invite badge */}
+          {/* Badge: Valid invite */}
           {!isLogin && inviteValid && (
-            <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
-              <KeyRound className="w-5 h-5 text-green-600" />
-              <span className="text-sm text-green-700">
-                Invitație validă - puteți crea contul
+            <div className="mb-6 px-4 py-3 bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 rounded-xl flex items-center justify-center">
+              <span className="text-sm text-emerald-400 font-medium">
+                Invitație verificată. Creați profilul.
               </span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  <User className="w-4 h-4 inline mr-1" />
-                  Nume complet
+                <label className="block text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">
+                  {t('register.fullName')}
                 </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full glass-input px-4 py-3 border"
-                  placeholder="Ionescu Adrian"
+                  className="w-full bg-slate-900 border-slate-800 text-white rounded-xl px-4 py-3 border focus:border-white/50 focus:ring-1 focus:ring-white/50 outline-none transition-all placeholder:text-slate-600"
+                  placeholder="John Doe"
                   required={!isLogin}
                   data-testid="fullname-input"
                 />
@@ -182,32 +180,40 @@ export const Login = () => {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                <Mail className="w-4 h-4 inline mr-1" />
-                Email
+              <label className="block text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">
+                {isLogin ? t('login.emailLabel') : t('register.email')}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-900 border-slate-800 text-white rounded-xl px-4 py-3 border focus:border-[#20b2aa] focus:ring-1 focus:ring-[#20b2aa] outline-none transition-all"
-                placeholder="admin@sushimaster.ro"
+                className="w-full bg-slate-900 border-slate-800 text-white rounded-xl px-4 py-3 border focus:border-[#20b2aa] focus:ring-1 focus:ring-[#20b2aa] outline-none transition-all placeholder:text-slate-600"
+                placeholder="admin@platform.com"
                 required
                 data-testid="email-input"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                <Lock className="w-4 h-4 inline mr-1" />
-                Parolă
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold tracking-widest uppercase text-slate-400">
+                  {isLogin ? t('login.passwordLabel') : t('register.password')}
+                </label>
+                {isLogin && (
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs text-[#00ced1] hover:text-[#25c8cc] font-medium"
+                  >
+                    Ai uitat parola?
+                  </Link>
+                )}
+              </div>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-900 border-slate-800 text-white rounded-xl px-4 py-3 pr-12 border focus:border-[#20b2aa] focus:ring-1 focus:ring-[#20b2aa] outline-none transition-all"
+                  className="w-full bg-slate-900 border-slate-800 text-white rounded-xl px-4 py-3 pr-12 border focus:border-[#20b2aa] focus:ring-1 focus:ring-[#20b2aa] outline-none transition-all placeholder:text-slate-600"
                   placeholder="••••••••"
                   required
                   data-testid="password-input"
@@ -215,73 +221,59 @@ export const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
                   tabIndex={-1}
                   data-testid="toggle-password-visibility"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
+            {/* Remember Me */}
             {isLogin && (
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className="relative flex items-center">
+              <div className="flex items-center mt-2 group cursor-pointer w-max" onClick={() => setRememberMe(!rememberMe)}>
+                 <div className="relative flex items-center justify-center w-5 h-5 mr-3">
                     <input
                       type="checkbox"
                       checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
+                      readOnly
                       className="sr-only"
                     />
-                    <div className={`w-5 h-5 rounded border-2 transition-all ${rememberMe ? 'bg-[#00ced1] border-[#00ced1]' : 'bg-white border-slate-300 group-hover:border-[#00ced1]'}`}>
+                    <div className={`w-full h-full rounded border transition-all ${rememberMe ? 'bg-[#20b2aa] border-[#20b2aa]' : 'bg-slate-900 border-slate-700 group-hover:border-slate-500'}`}>
                       {rememberMe && (
-                        <svg className="w-full h-full text-white p-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                        <svg className="w-full h-full text-white p-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       )}
                     </div>
-                  </div>
-                  <span className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
-                    Memorează parola
-                  </span>
-                </label>
-                
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-[#00ced1] hover:text-[#25c8cc] font-semibold"
-                >
-                  Ai uitat parola?
-                </Link>
+                 </div>
+                 <span className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
+                    Memorează autentificarea
+                 </span>
               </div>
             )}
 
-            {/* Invitation code field - only shown when registering and not first user */}
+            {/* Invitation code field */}
             {!isLogin && !isOpenRegistration && !inviteCode && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  <KeyRound className="w-4 h-4 inline mr-1" />
+                <label className="block text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">
                   Cod de invitație
                 </label>
                 <input
                   type="text"
                   value={invitationCode}
                   onChange={(e) => setInvitationCode(e.target.value)}
-                  className="w-full glass-input px-4 py-3 border"
+                  className="w-full bg-slate-900 border-slate-800 text-white rounded-xl px-4 py-3 border focus:border-white/50 focus:ring-1 focus:ring-white/50 outline-none transition-all placeholder:text-slate-600"
                   placeholder="Introduceți codul primit"
                   required
                   data-testid="invitation-code-input"
                 />
-                <p className="text-xs text-slate-500 mt-1">
-                  Solicitați un cod de invitație de la administratorul sistemului
-                </p>
               </div>
             )}
 
             {loginError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-2">
-                <Lock className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 text-center font-medium">
                 {loginError}
               </div>
             )}
@@ -289,48 +281,38 @@ export const Login = () => {
             <button
               type="submit"
               disabled={loading || (!isLogin && !canRegister)}
-              className="w-full bg-[#20b2aa] hover:bg-[#25c8cc] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#20b2aa]/20 transition-all flex items-center justify-center gap-2 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white text-slate-950 font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all flex items-center justify-center gap-3 mt-8 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.98]"
               data-testid="submit-button"
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <div className="spinner w-5 h-5 border-white"></div>
-                  Se procesează...
+                  <div className="spinner w-4 h-4 border-slate-950"></div>
+                  {t(isLogin ? 'login.loading' : 'register.loading')}
                 </div>
               ) : (
-                <span className="flex items-center justify-center gap-2">
-                  {isLogin ? (
-                    <>
-                      <Lock className="w-4 h-4" />
-                      Autentificare
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="w-4 h-4" />
-                      Creare cont
-                    </>
-                  )}
+                <span className="text-sm tracking-widest uppercase">
+                  {isLogin ? t('login.btnSignIn') : t('register.btnRegister')}
                 </span>
               )}
             </button>
           </form>
 
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center pt-6 border-t border-slate-800/50">
             {isLogin ? (
               <button
                 onClick={() => setIsLogin(false)}
-                className="text-slate-400 hover:text-white font-medium transition-colors"
+                className="text-slate-400 hover:text-white text-sm transition-colors"
                 data-testid="toggle-auth-mode"
               >
-                {isOpenRegistration ? 'Creează primul cont (Super Admin)' : 'Ai un cod de invitație?'}
+                {isOpenRegistration ? t('login.registerLink') : 'Ai un cod de invitație? ' + t('login.registerLink')}
               </button>
             ) : (
               <button
                 onClick={() => setIsLogin(true)}
-                className="text-slate-400 hover:text-white font-medium transition-colors"
+                className="text-slate-400 hover:text-white text-sm transition-colors"
                 data-testid="toggle-auth-mode"
               >
-                Ai deja cont? Autentifică-te
+                {t('register.loginLink')}
               </button>
             )}
           </div>

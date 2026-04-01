@@ -1,0 +1,69 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "livePreview": "Live Preview",
+    "locations": "Locații",
+    "screens": "Ecrane",
+    "content": "Conținut",
+    "sync": "Sincronizare",
+    "happyHour": "Happy Hour",
+    "playlists": "Playlist-uri",
+    "subscription": "Abonament",
+    "logout": "Deconectare"
+  },
+  "header": {
+    "greeting": "Salut"
+  },
+  "login": {
+    "title": "Aplicație Smart Displays",
+    "subtitle": "Gestionează și sincronizează conținutul media pentru ecranele tale digitale",
+    "welcomeBack": "Bine ai revenit",
+    "emailLabel": "Email Administrator",
+    "passwordLabel": "Parolă",
+    "btnSignIn": "Autentificare",
+    "loading": "Se verifică credențialele...",
+    "noAccount": "Nu ai cont?",
+    "registerLink": "Creează cont CMS",
+    "success": "Autentificare reușită!",
+    "error": "Email sau parolă incorecte"
+  },
+  "register": {
+    "title": "Creează un cont CMS",
+    "orgName": "Nume Organizație (ex. WeLoveSushi)",
+    "fullName": "Numele tău complet",
+    "email": "Email Administrator",
+    "password": "Parolă (min 6 caractere)",
+    "btnRegister": "Înregistrare Acum",
+    "loading": "Se creează contul...",
+    "alreadyHave": "Ai deja un cont?",
+    "loginLink": "Autentifică-te aici",
+    "success": "Cont creat cu succes!",
+    "error": "Autentificare eșuată",
+    "emailExists": "Adresa de email este deja folosită"
+  },
+  "subscription": {
+    "title": "Abonament Enterprise",
+    "subtitle": "Gestionează accesul la platforma Smart Displays",
+    "status": "Sumar",
+    "statusActive": "Abonament Activ",
+    "statusTrial": "Versiune de Test (Limita: 1 Ecran)",
+    "statusDescTrial": "Treci la versiunea Premium pentru a adăuga ecrane adiționale.",
+    "statusDescActive": "Acces complet activ. Toate ecranele funcționează optim.",
+    "screensRegistered": "Ecrane înregistrate",
+    "planTitle": "Extinde Accesul (Recurent)",
+    "planLimits": "Selectează numărul de ecrane",
+    "planLimitsDesc": "Dedicat pentru platforme cu conținut cloud inteligent.",
+    "planName": "Abonament Lunar SaaS",
+    "planDesc": "Plată recurentă lună de lună per ecran.",
+    "totalPerScreen": "/ ecran",
+    "totalTVA": "total pentru {{count}} ecran (TVA inclus)",
+    "totalTVAPlural": "total pentru {{count}} ecrane (TVA inclus)",
+    "btnSubscribe": "Abonează-te (Recurent)",
+    "btnProcessing": "Se procesează...",
+    "customTitle": "Abonament Corporate",
+    "customDesc": "Ai nevoie de >50 ecrane, SLA dedicat sau instalare locală? Contactează-ne pentru o soluție B2B.",
+    "btnEmail": "Trimite Email",
+    "btnCall": "Contactează-ne",
+    "securePayment": "Plăți Securizate. Activarea se face automat."
+  }
+}

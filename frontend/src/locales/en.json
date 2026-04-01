@@ -1,0 +1,70 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "livePreview": "Live Preview",
+    "locations": "Locations",
+    "screens": "Screens",
+    "content": "Content",
+    "sync": "Sync",
+    "happyHour": "Happy Hour",
+    "playlists": "Playlists",
+    "subscription": "Subscription",
+    "logout": "Log Out"
+  },
+  "header": {
+    "greeting": "Hello"
+  },
+  "login": {
+    "title": "Smart Displays OS",
+    "subtitle": "Manage and sync media content for your digital screens",
+    "welcomeBack": "Welcome Back",
+    "emailLabel": "Administrator Email",
+    "passwordLabel": "Password",
+    "btnSignIn": "Sign In",
+    "loading": "Verifying credentials...",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Create CMS account",
+    "success": "Sign in successful!",
+    "error": "Incorrect email or password"
+  },
+  "register": {
+    "title": "Create a CMS account",
+    "orgName": "Organization Name (e.g. Acme Corp)",
+    "fullName": "Your full name",
+    "email": "Administrator Email",
+    "password": "Password (min 6 characters)",
+    "btnRegister": "Register Now",
+    "loading": "Setting up account...",
+    "alreadyHave": "Already have an account?",
+    "loginLink": "Sign in here",
+    "success": "Account successfully created!",
+    "error": "Registration failed",
+    "emailExists": "Email is already in use"
+  },
+  "subscription": {
+    "title": "Enterprise Subscription",
+    "subtitle": "Manage your access to the Smart Displays platform",
+    "status": "Summary",
+    "statusActive": "Active Subscription",
+    "statusTrial": "Trial Version (Limit: 1 Screen)",
+    "statusDescTrial": "Upgrade to the Premium version to deploy additional screens.",
+    "statusDescActive": "Full access granted. All your displays are running optimally.",
+    "screensRegistered": "Registered screen",
+    "screensRegisteredPlural": "Registered screens",
+    "planTitle": "Extend Capability (Recurring)",
+    "planLimits": "Select the number of screens",
+    "planLimitsDesc": "Dedicated for high-volume smart cloud signage arrays.",
+    "planName": "Monthly SaaS Access",
+    "planDesc": "Recurring SaaS billing per active digital display.",
+    "totalPerScreen": "/ screen",
+    "totalTVA": "total for {{count}} screen (VAT incl.)",
+    "totalTVAPlural": "total for {{count}} screens (VAT incl.)",
+    "btnSubscribe": "Subscribe (Recurring)",
+    "btnProcessing": "Processing...",
+    "customTitle": "Corporate Plan",
+    "customDesc": "Need more than 50 screens, a dedicated SLA, or on-premise installation? Let's build a B2B solution together.",
+    "btnEmail": "Email Us",
+    "btnCall": "Call Support",
+    "securePayment": "Secure Payments. Activation is instant."
+  }
+}

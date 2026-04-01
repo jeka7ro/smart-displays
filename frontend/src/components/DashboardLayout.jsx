@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { LanguageToggle } from './LanguageToggle';
 import {
   Monitor,
   MapPin,
@@ -27,32 +29,33 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/live-preview', icon: Eye, label: 'Live Preview' },
-  { path: '/locations', icon: MapPin, label: 'Locații' },
-  { path: '/screens', icon: Tv, label: 'Ecrane' },
-  { path: '/content', icon: FileImage, label: 'Conținut' },
-  { path: '/screen-sync', icon: Shuffle, label: 'Sincronizare' },
-  { path: '/happy-hour', icon: ChevronRight, label: 'Happy Hour' },
-  { path: '/playlists', icon: List, label: 'Playlist-uri' },
-  { path: '/subscription', icon: CreditCard, label: 'Abonamentul Meu' },
+  { path: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
+  { path: '/live-preview', icon: Eye, key: 'livePreview' },
+  { path: '/locations', icon: MapPin, key: 'locations' },
+  { path: '/screens', icon: Tv, key: 'screens' },
+  { path: '/content', icon: FileImage, key: 'content' },
+  { path: '/screen-sync', icon: Shuffle, key: 'sync' },
+  { path: '/happy-hour', icon: ChevronRight, key: 'happyHour' },
+  { path: '/playlists', icon: List, key: 'playlists' },
+  { path: '/subscription', icon: CreditCard, key: 'subscription' },
 ];
 
 const adminMenuItems = [
-  { path: '/users', icon: Users, label: 'Utilizatori' },
-  { path: '/invitations', icon: UserPlus, label: 'Invitații' },
-  { path: '/activity-logs', icon: Activity, label: 'Jurnale Activitate' },
-  { path: '/billing', icon: DollarSign, label: 'Facturare' },
+  { path: '/users', icon: Users, key: 'users' },
+  { path: '/invitations', icon: UserPlus, key: 'invitations' },
+  { path: '/activity-logs', icon: Activity, key: 'activityLogs' },
+  { path: '/billing', icon: DollarSign, key: 'billing' },
 ];
 
 export const DashboardLayout = ({ children }) => {
+  const { t } = useTranslation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebarCollapsed');
     return saved === 'true';
   });
   const [currentTime, setCurrentTime] = useState(new Date());
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location = useRouterLocation();
+  const navigate = useRouterNavigate();
   const { user, logout, isSuperAdmin } = useAuth();
 
   useEffect(() => {
@@ -132,10 +135,10 @@ export const DashboardLayout = ({ children }) => {
                 to={item.path}
                 className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''} ${isSidebarCollapsed ? 'justify-center' : ''}`}
                 data-testid={`nav-${item.path.substring(1)}`}
-                title={isSidebarCollapsed ? item.label : ''}
+                title={isSidebarCollapsed ? t(`sidebar.${item.key}`) : ''}
               >
                 <Icon className="w-5 h-5 shrink-0" />
-                {!isSidebarCollapsed && <span className="animate-in fade-in slide-in-from-left-2 duration-300">{item.label}</span>}
+                {!isSidebarCollapsed && <span className="animate-in fade-in slide-in-from-left-2 duration-300">{t(`sidebar.${item.key}`)}</span>}
               </Link>
             );
           })}
@@ -189,14 +192,21 @@ export const DashboardLayout = ({ children }) => {
               <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           )}
+          
+          {!isSidebarCollapsed && (
+            <div className="animate-in fade-in duration-300">
+              <LanguageToggle />
+            </div>
+          )}
+
           <button
             onClick={handleLogout}
             className={`w-full flex items-center rounded-xl text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors duration-200 ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-2 px-4 py-3'}`}
             data-testid="logout-button"
-            title={isSidebarCollapsed ? "Deconectare" : ""}
+            title={isSidebarCollapsed ? t('sidebar.logout') : ""}
           >
             <LogOut className="w-5 h-5 shrink-0" />
-            {!isSidebarCollapsed && <span className="animate-in fade-in duration-300">Deconectare</span>}
+            {!isSidebarCollapsed && <span className="animate-in fade-in duration-300">{t('sidebar.logout')}</span>}
           </button>
         </div>
       </aside>
