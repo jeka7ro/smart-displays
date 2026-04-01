@@ -96,6 +96,7 @@ async def _create_tables() -> None:
     await pool.execute("""
         ALTER TABLE organizations ADD COLUMN IF NOT EXISTS daily_used_seconds INTEGER DEFAULT 0;
         ALTER TABLE organizations ADD COLUMN IF NOT EXISTS last_used_date TEXT DEFAULT '';
+        ALTER TABLE organizations ADD COLUMN IF NOT EXISTS plan_recurring BOOLEAN DEFAULT FALSE;
     """)
 
     await pool.execute("""
@@ -337,6 +338,12 @@ async def org_update_plan(org_id: str, plan: str, expires_at) -> None:
     await _exec(
         "UPDATE organizations SET plan=$1, plan_expires_at=$2 WHERE id=$3",
         plan, expires_at, org_id
+    )
+
+async def org_update_plan_recurring(org_id: str, is_recurring: bool) -> None:
+    await _exec(
+        "UPDATE organizations SET plan_recurring=$1 WHERE id=$2",
+        is_recurring, org_id
     )
 
 async def org_track_daily_usage(org_id: str, increment_seconds: int = 10) -> int:

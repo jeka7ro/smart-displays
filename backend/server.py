@@ -620,8 +620,16 @@ async def tv_heartbeat(slug: str):
         # Track 5-min daily limit
         org_data = await DB.org_get(screen["org_id"])
         plan = org_data.get("plan", "trial") if org_data else "trial"
-        daily_used_seconds = 0
+        expires_at = org_data.get("plan_expires_at")
         
+        # Determine if plan has expired
+        if plan != "trial" and expires_at and expires_at < datetime.now(timezone.utc):
+            plan = "trial"
+            # Auto-downgrade in DB if it's expired
+            await DB.org_update_plan(screen["org_id"], "trial", expires_at)
+            await DB.org_update_plan_recurring(screen["org_id"], False)
+
+        daily_used_seconds = 0
         if plan in ["trial", "free", "none"]:
             daily_used_seconds = await DB.org_track_daily_usage(screen["org_id"], 10)
             
@@ -810,8 +818,10 @@ async def activate_plan(body: BillingActivateIn, u=Depends(current_user)):
     if body.plan not in PLAN_DAYS:
         raise HTTPException(400, "Invalid plan")
     now = datetime.now(timezone.utc)
+    # The user says "calculate exactly the time they paid", so timedelta handles it accurately.
     expires = now + timedelta(days=PLAN_DAYS[body.plan])
     await DB.org_update_plan(u["org_id"], body.plan, expires)
+    await DB.org_update_plan_recurring(u["org_id"], body.is_recurring)
     await DB.billing_insert({
         "id": str(uuid.uuid4()), "org_id": u["org_id"],
         "plan": body.plan, "amount_eur": PLAN_EUR[body.plan],
@@ -822,11 +832,19 @@ async def activate_plan(body: BillingActivateIn, u=Depends(current_user)):
 
 @api.post("/billing/cancel")
 async def cancel_plan(u=Depends(current_user)):
-    """Cancel currently active premium plan."""
-    now = datetime.now(timezone.utc)
-    # The simplest way to "cancel" is to reset the plan back to 'trial'
-    await DB.org_update_plan(u["org_id"], "trial", now)
-    return {"ok": True, "plan": "trial", "expires_at": now.isoformat()}
+    """Cancel currently active premium plan's auto-renewal without downgrading instantly."""
+    org_data = await DB.org_get(u["org_id"])
+    if not org_data:
+        raise HTTPException(404, "Org not found")
+
+    await DB.org_update_plan_recurring(u["org_id"], False)
+    
+    expires = org_data.get("plan_expires_at")
+    return {
+        "ok": True, 
+        "plan": org_data.get("plan", "trial"), 
+        "expires_at": expires.isoformat() if expires else None
+    }
 
 @api.get("/billing")
 async def get_billing(u=Depends(current_user)):
@@ -854,7 +872,16 @@ async def get_dashboard_stats(u=Depends(current_user)):
     screens = await DB.screens_list(u["org_id"])
     org_data = await DB.org_get(u["org_id"])
     plan = org_data.get("plan", "trial") if org_data else "trial"
+    expires_at = org_data.get("plan_expires_at") if org_data else None
+    plan_recurring = org_data.get("plan_recurring", False) if org_data else False
     
+    # Auto-downgrade on load if expired
+    if plan != "trial" and expires_at and expires_at < datetime.now(timezone.utc):
+        plan = "trial"
+        await DB.org_update_plan(u["org_id"], "trial", expires_at)
+        await DB.org_update_plan_recurring(u["org_id"], False)
+        plan_recurring = False
+        
     return {
         "locations": 0,
         "screens_total": len(screens),
@@ -862,6 +889,8 @@ async def get_dashboard_stats(u=Depends(current_user)):
         "products_active": 0,
         "content_files": 0,
         "plan": plan,
+        "plan_expires_at": expires_at.isoformat() if expires_at else None,
+        "plan_recurring": plan_recurring,
         "recent_activity": []
     }
 

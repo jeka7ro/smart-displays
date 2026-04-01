@@ -31,7 +31,9 @@ export const Subscription = () => {
     api.get('/dashboard/stats').then(res => {
       setStats({ 
         screens: res.data.screens_total || 0,
-        plan: res.data.plan || 'trial'
+        plan: res.data.plan || 'trial',
+        plan_expires_at: res.data.plan_expires_at || null,
+        plan_recurring: res.data.plan_recurring || false
       });
     }).catch(() => {});
   }, []);
@@ -58,12 +60,17 @@ export const Subscription = () => {
   };
 
   const handleCancel = async () => {
-    if (!window.confirm("Ești sigur că vrei să anulezi reînnoirea planului curent?")) return;
+    if (!window.confirm("Ești sigur că vrei să anulezi reînnoirea planului curent? Acesta va rămâne activ până la expirare.")) return;
     setLoadingId("cancel");
     try {
-      await api.post('/billing/cancel');
-      setStats(prev => ({ ...prev, plan: 'trial' }));
-      toast.success("Abonamentul a fost anulat cu succes.");
+      const res = await api.post('/billing/cancel');
+      setStats(prev => ({ 
+         ...prev, 
+         plan: res.data.plan, 
+         plan_recurring: false,
+         plan_expires_at: res.data.expires_at 
+      }));
+      toast.success("Reînnoirea automată a fost anulată cu succes.");
     } catch (error) {
       toast.error("A apărut o eroare la anularea abonamentului.");
     } finally {
@@ -146,14 +153,28 @@ export const Subscription = () => {
                 <div>
                    <h3 className="text-2xl font-black text-emerald-900 tracking-tight mb-2">Abonament Activ</h3>
                    <p className="text-emerald-700 font-medium">Ai redare nelimitată și funcții premium pentru ecranele tale.</p>
+                   {stats.plan_expires_at && (
+                     <p className="text-sm font-bold text-emerald-800 mt-2">
+                        Valabil până la: {new Date(stats.plan_expires_at).toLocaleDateString('ro-RO')}
+                     </p>
+                   )}
+                   {stats.plan_recurring === false && stats.plan_expires_at && (
+                     <p className="text-sm font-bold text-amber-700 mt-1">Abonamentul nu se va reînnoi automat la sfârșitul perioadei curente.</p>
+                   )}
                 </div>
-                <button 
-                  onClick={handleCancel}
-                  disabled={loadingId === "cancel"}
-                  className="px-6 py-3 bg-white text-rose-600 border border-rose-200 font-bold rounded-xl hover:bg-rose-50 shadow-sm transition-all"
-                >
-                  {loadingId === "cancel" ? "Se procesează..." : "Anulează Abonamentul"}
-                </button>
+                {stats.plan_recurring ? (
+                    <button 
+                      onClick={handleCancel}
+                      disabled={loadingId === "cancel"}
+                      className="px-6 py-3 bg-white text-rose-600 border border-rose-200 font-bold rounded-xl hover:bg-rose-50 shadow-sm transition-all whitespace-nowrap"
+                    >
+                      {loadingId === "cancel" ? "Se procesează..." : "Anulează Reînnoirea"}
+                    </button>
+                ) : (
+                    <div className="px-6 py-3 bg-slate-100 text-slate-500 font-bold rounded-xl border border-slate-200 shadow-inner whitespace-nowrap">
+                        Anulat (Expiră curând)
+                    </div>
+                )}
             </div>
           )}
 
@@ -263,7 +284,9 @@ export const Subscription = () => {
                   }`}
                 >
                   <span className="relative z-10 tracking-wide">
-                     {loadingId === plan.id ? t('subscription.btnProcessing') : t('subscription.btnSubscribe')}
+                     {loadingId === plan.id 
+                        ? t('subscription.btnProcessing') 
+                        : (isRecurring ? 'Abonează-te (Auto-Reînnoire)' : 'Abonează-te')}
                   </span>
                   {!plan.popular && (
                     <div className="absolute inset-0 bg-white/10 blur-md transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
