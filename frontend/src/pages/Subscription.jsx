@@ -158,46 +158,46 @@ export const Subscription = () => {
           )}
 
           {/* Universal Screen Setup */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white/60 backdrop-blur-2xl border border-slate-200/60 p-6 rounded-3xl shadow-sm">
-            <div>
-               <h3 className="text-2xl font-black text-slate-800 tracking-tight">
-                  {t('subscription.planTitle')}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white/60 backdrop-blur-2xl border border-slate-200/60 p-4 px-6 rounded-2xl shadow-sm">
+            <div className="flex-1">
+               <h3 className="text-xl font-black text-slate-800 tracking-tight">
+                  Extinde Accesul (Recurent)
                </h3>
-               <p className="text-slate-500 font-medium">
-                  {t('subscription.extendLabel')}
+               <p className="text-slate-500 font-medium text-sm">
+                  Câte ecrane vrei să menții active cu rulare non-stop?
                </p>
             </div>
             
-            <div className="flex flex-wrap items-center justify-center md:justify-end gap-6">
+            <div className="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap justify-end">
               
               {/* Currency Selector */}
-              <div className="flex bg-slate-100/80 p-1.5 rounded-[1rem] shadow-inner">
-                {['EUR', 'RON', 'USD'].map(c => (
+              <div className="flex bg-slate-100/80 p-1 rounded-xl shadow-inner border border-slate-200/50">
+                {[{c: 'EUR', s: '€'}, {c: 'RON', s: 'lei'}, {c: 'USD', s: '$'}].map(({c, s}) => (
                     <button 
                         key={c}
                         onClick={() => setCurrency(c)}
-                        className={`px-4 py-2 font-bold text-sm rounded-[0.75rem] transition-all ${currency === c ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`px-3 py-1.5 font-bold text-xs rounded-lg transition-all ${currency === c ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600 border border-transparent'}`}
                     >
-                        {c}
+                        {c} {s}
                     </button>
                 ))}
               </div>
 
-              <div className="flex items-center gap-4 bg-slate-100/80 border border-slate-200/80 rounded-[1.25rem] p-1.5 shadow-inner min-w-[160px]">
+              <div className="flex items-center gap-2 bg-slate-100/80 border border-slate-200/50 rounded-xl p-1 shadow-inner h-[36px]">
                 <button 
                   onClick={() => setScreenCount(Math.max(1, screenCount - 1))}
-                  className="w-12 h-12 flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-200 rounded-[1rem] text-slate-600 transition-all active:scale-95 shadow-sm"
+                  className="w-8 h-full flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 transition-all active:scale-95 shadow-sm"
                 >
-                  <Minus className="w-5 h-5"/>
+                  <Minus className="w-4 h-4"/>
                 </button>
-                <span className="flex-1 text-center font-black text-2xl text-slate-800 tracking-tighter">
+                <span className="w-8 text-center font-black text-lg text-slate-800 tracking-tighter">
                   {screenCount}
                 </span>
                 <button 
                   onClick={() => setScreenCount(screenCount + 1)}
-                  className="w-12 h-12 flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-200 rounded-[1rem] text-slate-600 transition-all active:scale-95 shadow-sm"
+                  className="w-8 h-full flex items-center justify-center bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 transition-all active:scale-95 shadow-sm"
                 >
-                  <Plus className="w-5 h-5"/>
+                  <Plus className="w-4 h-4"/>
                 </button>
               </div>
             </div>

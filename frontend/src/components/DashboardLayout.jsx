@@ -90,7 +90,7 @@ export const DashboardLayout = ({ children }) => {
     <div className="flex min-h-screen relative">
       <div className="fixed inset-0 bg-gradient-to-br from-slate-50 relative z-[-1] to-slate-200/50 pointer-events-none"></div>
       {/* Sidebar */}
-      <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-[17rem]'} h-screen fixed left-0 top-0 z-50 flex flex-col transition-all duration-300 ease-in-out bg-white/70 backdrop-blur-3xl border-r border-white/50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]`} data-testid="sidebar">
+      <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-[17rem]'} h-screen fixed left-0 top-0 z-50 flex flex-col transition-all duration-300 ease-in-out bg-white/40 backdrop-blur-[40px] border-r border-white/60 shadow-[4px_0_24px_rgba(0,0,0,0.05)]`} data-testid="sidebar">
         <div className={`px-2 border-b border-white/40 bg-transparent relative flex items-center ${isSidebarCollapsed ? 'justify-center' : ''} h-[72px] shrink-0`}>
           <Link to="/dashboard" className="flex items-center overflow-hidden w-full">
             {isSidebarCollapsed ? (
@@ -105,7 +105,7 @@ export const DashboardLayout = ({ children }) => {
                   <img 
                     src="/getapp_smart_displays_black.png" 
                     alt="GET App Smart Displays" 
-                    className="h-[52px] w-auto object-contain transition-all hover:scale-105"
+                    className="h-[36px] w-auto object-contain transition-all hover:scale-105"
                   />
                 </div>
               </div>
@@ -211,7 +211,7 @@ export const DashboardLayout = ({ children }) => {
       {/* Main Content */}
       <div className={`${isSidebarCollapsed ? 'ml-20' : 'ml-[17rem]'} flex-1 min-h-screen transition-all duration-300 ease-in-out flex flex-col`}>
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-40 px-8 h-[72px] flex items-center border-b border-white/60 bg-white/60 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.03)] shrink-0">
+        <header className="sticky top-0 z-40 px-8 h-[72px] flex items-center border-b border-white/60 bg-white/40 backdrop-blur-[40px] shadow-[0_4px_30px_rgba(0,0,0,0.04)] shrink-0">
           <div className="flex items-center justify-end gap-5 w-full">
             
             {/* Language Toggle */}

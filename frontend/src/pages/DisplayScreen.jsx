@@ -383,6 +383,20 @@ export const DisplayScreen = () => {
     return () => clearInterval(hbInterval);
   }, [displayData?.screen?.id, isPreview, slug]);
 
+  // Local continuous countdown for DEMO MODE UI
+  useEffect(() => {
+    if (plan !== 'trial' && plan !== 'free' && plan !== 'none') return;
+    if (isPreview) return;
+
+    const interval = setInterval(() => {
+      setDemoSeconds(prev => {
+        if (prev >= 300) return 300;
+        return prev + 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [plan, isPreview]);
+
   // Listen for config updates from ScreenDesigner (cross-tab refresh)
   useEffect(() => {
     const handleStorageChange = (e) => {
