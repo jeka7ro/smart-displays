@@ -54,8 +54,8 @@ export const DashboardLayout = ({ children }) => {
     return saved === 'true';
   });
   const [currentTime, setCurrentTime] = useState(new Date());
-  const location = useRouterLocation();
-  const navigate = useRouterNavigate();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout, isSuperAdmin } = useAuth();
 
   useEffect(() => {
