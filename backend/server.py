@@ -623,6 +623,15 @@ async def tv_heartbeat(slug: str):
         expires_at = org_data.get("plan_expires_at")
         
         # Determine if plan has expired
+        if expires_at:
+            if isinstance(expires_at, str):
+                try:
+                    expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+                except ValueError:
+                    expires_at = None
+            elif isinstance(expires_at, datetime) and expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+
         if plan != "trial" and expires_at and expires_at < datetime.now(timezone.utc):
             plan = "trial"
             # Auto-downgrade in DB if it's expired
@@ -875,6 +884,16 @@ async def get_dashboard_stats(u=Depends(current_user)):
     expires_at = org_data.get("plan_expires_at") if org_data else None
     plan_recurring = org_data.get("plan_recurring", False) if org_data else False
     
+    # Bulletproof expiration parsing
+    if expires_at:
+        if isinstance(expires_at, str):
+            try:
+                expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+            except ValueError:
+                expires_at = None
+        elif isinstance(expires_at, datetime) and expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+            
     # Auto-downgrade on load if expired
     if plan != "trial" and expires_at and expires_at < datetime.now(timezone.utc):
         plan = "trial"
@@ -889,7 +908,7 @@ async def get_dashboard_stats(u=Depends(current_user)):
         "products_active": 0,
         "content_files": 0,
         "plan": plan,
-        "plan_expires_at": expires_at.isoformat() if expires_at else None,
+        "plan_expires_at": expires_at.isoformat() if expires_at and isinstance(expires_at, datetime) else expires_at,
         "plan_recurring": plan_recurring,
         "recent_activity": []
     }

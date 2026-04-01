@@ -50,6 +50,7 @@
     "statusDescTrial": "Treci la versiunea Premium pentru a adăuga ecrane adiționale.",
     "statusDescActive": "Acces complet activ. Toate ecranele funcționează optim.",
     "screensRegistered": "Ecrane înregistrate",
+    "screensRegisteredPlural": "Ecrane active",
     "planTitle": "Extinde Accesul (Recurent)",
     "planLimits": "Selectează numărul de ecrane",
     "planLimitsDesc": "Dedicat pentru platforme cu conținut cloud inteligent.",

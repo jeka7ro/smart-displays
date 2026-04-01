@@ -47,6 +47,25 @@ export const Subscription = () => {
           currency: currency, 
           is_recurring: isRecurring 
       };
+
+      // SIMULARE TEMPORARĂ: Dacă alege 1 zi, activăm direct fără a merge la procesatorul de plăți
+      if (planType === 'day') {
+         Object.assign(payload, { ref: 'simulated_free_day_test' });
+         const activateRes = await api.post('/billing/activate', payload);
+         toast.success("Succes: Abonamentul de 1 Zi a fost activat gratuit pentru testare!");
+         
+         // Update UI instantly
+         const statsRes = await api.get('/dashboard/stats');
+         setStats({ 
+            screens: statsRes.data.screens_total || 0,
+            plan: statsRes.data.plan || 'trial',
+            plan_expires_at: statsRes.data.plan_expires_at || null,
+            plan_recurring: statsRes.data.plan_recurring || false
+         });
+         setLoadingId(null);
+         return;
+      }
+
       const res = await api.post('/billing/checkout', payload);
       if (res.data && res.data.url) {
         window.location.href = res.data.url;
