@@ -14,7 +14,7 @@ export const Subscription = () => {
   const [screenCount, setScreenCount] = useState(1);
   const [stats, setStats] = useState({ screens: 0, plan: 'none' });
   const [currency, setCurrency] = useState('EUR');
-  const [isRecurring, setIsRecurring] = useState(true);
+  const [isRecurring, setIsRecurring] = useState(false);
 
   useEffect(() => {
     // GeoIP setup for default currency based on user location
@@ -161,7 +161,7 @@ export const Subscription = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white/60 backdrop-blur-2xl border border-slate-200/60 p-4 px-6 rounded-2xl shadow-sm">
             <div className="flex-1">
                <h3 className="text-xl font-black text-slate-800 tracking-tight">
-                  Extinde Accesul (Recurent)
+                  Extinde Accesul
                </h3>
                <p className="text-slate-500 font-medium text-sm">
                   Câte ecrane vrei să menții active cu rulare non-stop?
