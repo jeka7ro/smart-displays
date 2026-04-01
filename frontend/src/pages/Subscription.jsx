@@ -160,9 +160,22 @@ export const Subscription = () => {
           {/* Universal Screen Setup */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white/60 backdrop-blur-2xl border border-slate-200/60 p-4 px-6 rounded-2xl shadow-sm">
             <div className="flex-1">
-               <h3 className="text-xl font-black text-slate-800 tracking-tight">
-                  Extinde Accesul
-               </h3>
+               <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-1">
+                 <h3 className="text-xl font-black text-slate-800 tracking-tight">
+                    Extinde Accesul
+                 </h3>
+                 <label className="flex items-center gap-2 cursor-pointer group">
+                    <input 
+                        type="checkbox" 
+                        checked={isRecurring} 
+                        onChange={(e) => setIsRecurring(e.target.checked)}
+                        className="w-4 h-4 rounded text-emerald-500 border-slate-300 focus:ring-emerald-500 cursor-pointer shadow-inner"
+                    />
+                    <span className="font-bold text-slate-600 text-sm group-hover:text-slate-900 transition-colors">
+                       Activează Plata Recurentă
+                    </span>
+                 </label>
+               </div>
                <p className="text-slate-500 font-medium text-sm">
                   Câte ecrane vrei să menții active cu rulare non-stop?
                </p>
@@ -263,20 +276,6 @@ export const Subscription = () => {
               </div>
             ))}
           </div>
-
-          {/* Recurring Toggle */}
-          <div className="mt-8 flex justify-center">
-             <label className="flex items-center gap-3 cursor-pointer group p-4 rounded-xl hover:bg-slate-50 transition-colors">
-                <input 
-                    type="checkbox" 
-                    checked={isRecurring} 
-                    onChange={(e) => setIsRecurring(e.target.checked)}
-                    className="w-5 h-5 rounded text-emerald-500 border-slate-300 focus:ring-emerald-500 cursor-pointer"
-                />
-                <span className="font-bold text-slate-700 group-hover:text-slate-900">Activează Plata Recurentă (Auto-Reînnoire)</span>
-             </label>
-          </div>
-
         </div>
         
         {/* Enterprise Block */}
