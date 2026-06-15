@@ -15,6 +15,7 @@ export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [orgName, setOrgName] = useState('');
   const [invitationCode, setInvitationCode] = useState(inviteCode || '');
   const [loading, setLoading] = useState(false);
   const isOpenRegistration = true; // Hardcoded to true to allow public registration
@@ -78,7 +79,7 @@ export const Login = () => {
         
         toast.success('Login successful!');
       } else {
-        await register(email, password, fullName, invitationCode || null);
+        await register(email, password, fullName, orgName, invitationCode || null);
         toast.success('Account created successfully!');
       }
       navigate('/dashboard');
@@ -147,9 +148,10 @@ export const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
+              <>
               <div>
                 <label className="block text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">
-                  {t('register.fullName')}
+                  {t('register.fullName') || 'Numele Tău Complet'}
                 </label>
                 <input
                   type="text"
@@ -161,9 +163,25 @@ export const Login = () => {
                   data-testid="fullname-input"
                 />
               </div>
-            )}
+              
+              <div>
+                <label className="block text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">
+                  Company Name / Location
+                </label>
+                <input
+                  type="text"
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  className="w-full bg-slate-900 border-slate-800 text-white rounded-xl px-4 py-3 border focus:border-white/50 focus:ring-1 focus:ring-white/50 outline-none transition-all placeholder:text-slate-600"
+                  placeholder="My Restaurant SRL"
+                  required={!isLogin}
+                  data-testid="orgname-input"
+                />
+              </div>
+            </>
+          )}
 
-            <div>
+          <div>
               <label className="block text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">
                 {isLogin ? t('login.emailLabel') : t('register.email')}
               </label>
