@@ -365,6 +365,28 @@ async def google_auth(body: GoogleAuthIn):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# SUPER ADMIN ROUTES
+# ══════════════════════════════════════════════════════════════════════════════
+
+class SuperAdminPlanUpdate(BaseModel):
+    plan: str
+    expires_at: Optional[datetime] = None
+
+@api.get("/superadmin/organizations")
+async def get_all_organizations(u=Depends(current_user)):
+    if u["email"] != "jeka7ro@gmail.com":
+        raise HTTPException(403, "Forbidden")
+    return await DB.superadmin_get_all_orgs()
+
+@api.post("/superadmin/organizations/{org_id}/plan")
+async def update_org_plan(org_id: str, body: SuperAdminPlanUpdate, u=Depends(current_user)):
+    if u["email"] != "jeka7ro@gmail.com":
+        raise HTTPException(403, "Forbidden")
+    await DB.org_update_plan(org_id, body.plan, body.expires_at)
+    return {"ok": True}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # LOCATIONS
 # ══════════════════════════════════════════════════════════════════════════════
 
