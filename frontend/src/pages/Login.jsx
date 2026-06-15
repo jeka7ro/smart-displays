@@ -17,7 +17,7 @@ export const Login = () => {
   const [fullName, setFullName] = useState('');
   const [invitationCode, setInvitationCode] = useState(inviteCode || '');
   const [loading, setLoading] = useState(false);
-  const [isOpenRegistration, setIsOpenRegistration] = useState(false);
+  const isOpenRegistration = true; // Hardcoded to true to allow public registration
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [inviteValid, setInviteValid] = useState(false);
@@ -38,18 +38,7 @@ export const Login = () => {
     }
   }, []);
 
-  // Check if open registration is available (first user)
-  useEffect(() => {
-    const checkRegistration = async () => {
-      try {
-        const response = await api.get('/auth/check-registration-open');
-        setIsOpenRegistration(response.data.open);
-      } catch (error) {
-        console.error('Error checking registration status');
-      }
-    };
-    checkRegistration();
-  }, []);
+  // Check if open registration is available (removed, now always open)
 
   // Validate invitation code from URL
   useEffect(() => {
@@ -60,7 +49,7 @@ export const Login = () => {
           setInviteValid(true);
           setIsLogin(false);
         } catch (error) {
-          toast.error('Codul de invitație este invalid sau expirat');
+          toast.error('Invalid or expired invitation code');
           setInviteValid(false);
         } finally {
           setCheckingInvite(false);
@@ -87,20 +76,14 @@ export const Login = () => {
           localStorage.removeItem('remember_password');
         }
         
-        toast.success('Autentificare reușită!');
+        toast.success('Login successful!');
       } else {
-        // For registration, check if invitation code is needed
-        if (!isOpenRegistration && !invitationCode) {
-          toast.error('Codul de invitație este obligatoriu');
-          setLoading(false);
-          return;
-        }
         await register(email, password, fullName, invitationCode || null);
-        toast.success(isOpenRegistration ? 'Cont Super Admin creat cu succes!' : 'Cont creat cu succes!');
+        toast.success('Account created successfully!');
       }
       navigate('/dashboard');
     } catch (error) {
-      const msg = error.response?.data?.detail || 'A apărut o eroare';
+      const msg = error.response?.data?.detail || 'An error occurred';
       setLoginError(msg);
       toast.error(msg);
     } finally {
@@ -115,7 +98,7 @@ export const Login = () => {
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="glass-card p-8 text-center">
           <div className="spinner w-8 h-8 mx-auto mb-4"></div>
-          <p className="text-slate-600">Se verifică invitația...</p>
+          <p className="text-slate-600">Verifying invitation...</p>
         </div>
       </div>
     );
@@ -148,7 +131,7 @@ export const Login = () => {
           {!isLogin && !inviteValid && isOpenRegistration && (
             <div className="mb-6 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center">
               <span className="text-sm text-white/90 font-medium tracking-wide">
-                Configurare Profil <strong className="text-white font-bold tracking-widest pl-1 uppercase">Admin</strong>
+                Profile Setup <strong className="text-white font-bold tracking-widest pl-1 uppercase">Admin</strong>
               </span>
             </div>
           )}
@@ -157,7 +140,7 @@ export const Login = () => {
           {!isLogin && inviteValid && (
             <div className="mb-6 px-4 py-3 bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 rounded-xl flex items-center justify-center">
               <span className="text-sm text-emerald-400 font-medium">
-                Invitație verificată. Creați profilul.
+                Invitation verified. Create your profile.
               </span>
             </div>
           )}
@@ -205,7 +188,7 @@ export const Login = () => {
                     to="/forgot-password"
                     className="text-xs text-[#00ced1] hover:text-[#25c8cc] font-medium"
                   >
-                    Ai uitat parola?
+                    Forgot password?
                   </Link>
                 )}
               </div>
@@ -250,28 +233,12 @@ export const Login = () => {
                     </div>
                  </div>
                  <span className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
-                    Memorează autentificarea
+                    Remember me
                  </span>
               </div>
             )}
 
-            {/* Invitation code field */}
-            {!isLogin && !isOpenRegistration && !inviteCode && (
-              <div>
-                <label className="block text-xs font-bold tracking-widest uppercase text-slate-400 mb-2">
-                  Cod de invitație
-                </label>
-                <input
-                  type="text"
-                  value={invitationCode}
-                  onChange={(e) => setInvitationCode(e.target.value)}
-                  className="w-full bg-slate-900 border-slate-800 text-white rounded-xl px-4 py-3 border focus:border-white/50 focus:ring-1 focus:ring-white/50 outline-none transition-all placeholder:text-slate-600"
-                  placeholder="Introduceți codul primit"
-                  required
-                  data-testid="invitation-code-input"
-                />
-              </div>
-            )}
+            {/* Invitation code field removed */}
 
             {loginError && (
               <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 text-center font-medium">
@@ -305,7 +272,7 @@ export const Login = () => {
                 className="text-slate-400 hover:text-white text-sm transition-colors"
                 data-testid="toggle-auth-mode"
               >
-                {isOpenRegistration ? t('login.registerLink') : 'Ai un cod de invitație? ' + t('login.registerLink')}
+                Don't have an account? Create one
               </button>
             ) : (
               <button
@@ -313,7 +280,7 @@ export const Login = () => {
                 className="text-slate-400 hover:text-white text-sm transition-colors"
                 data-testid="toggle-auth-mode"
               >
-                {t('register.loginLink')}
+                Already have an account? Sign in
               </button>
             )}
           </div>

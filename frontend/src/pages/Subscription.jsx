@@ -106,11 +106,15 @@ export const Subscription = () => {
       return (eurPrice * C_RATES[currency]).toFixed(2);
   };
 
+  const currentMonth = new Date().getMonth();
+  const isSummerSale = currentMonth === 5 || currentMonth === 6; // June or July
+  const discount = isSummerSale ? 0.5 : 1.0;
+
   const plans = [
-    { id: 'day', name: t('subscription.planDayName'), desc: t('subscription.planDayDesc'), price: 1.21 },
-    { id: 'week', name: t('subscription.planWeekName'), desc: t('subscription.planWeekDesc'), price: 6.05, savings: '-28%' },
-    { id: 'month', name: t('subscription.planMonthName'), desc: t('subscription.planMonthDesc'), price: 18.15, popular: true, savings: '-50%' },
-    { id: 'year', name: '1 An B2B', desc: 'Preț garantat la plată anuală anticipată.', price: 174.24, savings: '-20%' }
+    { id: 'day', name: t('subscription.planDayName'), desc: t('subscription.planDayDesc'), price: 1.21 * discount },
+    { id: 'week', name: t('subscription.planWeekName'), desc: t('subscription.planWeekDesc'), price: 6.05 * discount, savings: '-28%' },
+    { id: 'month', name: t('subscription.planMonthName'), desc: t('subscription.planMonthDesc'), price: 18.15 * discount, popular: true, savings: '-50%' },
+    { id: 'year', name: '1 An B2B', desc: 'Preț garantat la plată anuală anticipată.', price: 174.24 * discount, savings: '-20%' }
   ];
 
   return (
@@ -167,6 +171,14 @@ export const Subscription = () => {
         {/* Control & Plans Grid */}
         <div className="mb-12">
           
+          {isSummerSale && (
+            <div className="bg-gradient-to-r from-orange-500/20 to-rose-500/20 border border-orange-500/50 p-4 rounded-2xl mb-8 flex items-center justify-center animate-pulse shadow-[0_0_30px_rgba(249,115,22,0.2)]">
+              <span className="text-orange-600 dark:text-orange-400 font-black text-lg tracking-wide uppercase">
+                ☀️ Summer Sale! Reducere 50% aplicată pentru luna Iunie și Iulie.
+              </span>
+            </div>
+          )}
+
           {!isTrial && (
             <div className="bg-emerald-50 border border-emerald-200 p-8 rounded-[2rem] shadow-sm mb-12 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in duration-500">
                 <div>
@@ -293,26 +305,23 @@ export const Subscription = () => {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => handleCheckout(plan.id)}
-                  disabled={loadingId !== null}
-                  className={`w-full py-4 rounded-2xl font-bold text-white transition-all overflow-hidden relative group disabled:opacity-70 disabled:active:scale-100 ${
+                <a
+                  href="mailto:contact@getapp.ro?subject=Activare%20Abonament"
+                  className={`block text-center w-full py-4 rounded-2xl font-bold text-white transition-all overflow-hidden relative group ${
                      plan.popular
                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:shadow-[0_10px_25px_rgba(16,185,129,0.4)] hover:opacity-90 active:scale-[0.98]'
                        : 'bg-slate-900/80 backdrop-blur-xl border border-white/10 hover:bg-black shadow-[0_10px_30px_rgba(0,0,0,0.3)] inset-shadow-white/20 active:scale-[0.98]'
                   }`}
                 >
                   <span className="relative z-10 tracking-wide">
-                     {loadingId === plan.id 
-                        ? t('subscription.btnProcessing') 
-                        : (isRecurring ? 'Abonează-te (Auto-Reînnoire)' : 'Abonează-te')}
+                     Contactează-ne
                   </span>
                   {!plan.popular && (
                     <div className="absolute inset-0 bg-white/10 blur-md transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   )}
-                </button>
+                </a>
                 <p className="text-[11px] text-center font-bold uppercase tracking-wider text-slate-400 mt-4 leading-relaxed">
-                  Anulare oricând din setările contului.
+                  Sau sună-ne la: +40 75 77777 12
                 </p>
                 
               </div>
