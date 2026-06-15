@@ -1,673 +1,268 @@
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  Users as UsersIcon,
-  User,
-  Shield,
-  Mail,
-  Calendar,
-  RefreshCw,
-  XCircle,
-  Clock,
-  Trash2,
-  Key,
-  Ban,
-  CheckCircle,
-  Edit,
-  Camera,
-} from 'lucide-react';
+import { Shield, RefreshCw, Edit, XCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useViewMode } from '../hooks/useViewMode';
-import { ViewToggle } from '../components/ViewToggle';
+import { useNavigate } from 'react-router-dom';
 
 export const Users = () => {
   const { isSuperAdmin } = useAuth();
-  const [users, setUsers] = useState([]);
-  const [viewMode, setViewMode] = useViewMode('view_mode_users', 'list');
+  const navigate = useNavigate();
+  const [orgs, setOrgs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [newPassword, setNewPassword] = useState('');
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [resetting, setResetting] = useState(false);
+  const [selectedOrg, setSelectedOrg] = useState(null);
   const [updating, setUpdating] = useState(false);
-  const [locations, setLocations] = useState([]);
-  const [avatarUploadingId, setAvatarUploadingId] = useState(null);
-  const avatarInputRef = React.useRef(null);
-  const [avatarTargetUser, setAvatarTargetUser] = useState(null);
+  
   const [editFormData, setEditFormData] = useState({
-    full_name: '',
-    role: 'admin',
-    location_id: ''
+    plan: 'trial',
+    expires_at_date: '',
   });
 
   useEffect(() => {
-    loadUsers();
-    loadLocations();
-  }, []);
-
-  const loadLocations = async () => {
-    try {
-      const response = await api.get('/locations');
-      setLocations(response.data);
-    } catch (error) {
-      console.error('Error loading locations', error);
+    if (!isSuperAdmin()) {
+      navigate('/dashboard', { replace: true });
+      return;
     }
-  };
+    loadOrgs();
+  }, [isSuperAdmin, navigate]);
 
-  const loadUsers = async () => {
+  const loadOrgs = async () => {
     try {
-      const response = await api.get('/users');
-      setUsers(response.data);
+      setLoading(true);
+      const response = await api.get('/superadmin/organizations');
+      setOrgs(response.data);
     } catch (error) {
       if (error.response?.status !== 403) {
-        toast.error('Eroare la încărcarea utilizatorilor');
+        toast.error('Eroare la încărcarea organizațiilor');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Ești sigur că vrei să ștergi acest utilizator? Această acțiune este ireversibilă.')) return;
-    try {
-      await api.delete(`/users/${userId}`);
-      toast.success('Utilizator șters cu succes');
-      loadUsers();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Eroare la ștergere');
+  const handleEditClick = (org) => {
+    setSelectedOrg(org);
+    // Parse the date
+    let dateStr = '';
+    if (org.plan_expires_at) {
+      const d = new Date(org.plan_expires_at);
+      if (!isNaN(d)) {
+        dateStr = d.toISOString().split('T')[0];
+      }
     }
-  };
-
-  const handleUpdateStatus = async (userId, currentStatus) => {
-    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
-    try {
-      await api.patch(`/users/${userId}/status`, { status: newStatus });
-      toast.success(`Utilizator ${newStatus === 'active' ? 'activat' : 'suspendat'}`);
-      loadUsers();
-    } catch (error) {
-      toast.error('Eroare la actualizarea statusului');
-    }
-  };
-
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    if (newPassword.length < 6) {
-      toast.error('Parola trebuie să aibă cel puțin 6 caractere');
-      return;
-    }
-    setResetting(true);
-    try {
-      await api.post(`/users/${selectedUser.id}/reset-password`, { new_password: newPassword });
-      toast.success('Parolă resetată cu succes');
-      setShowPasswordDialog(false);
-      setNewPassword('');
-    } catch (error) {
-      toast.error('Eroare la resetarea parolei');
-    } finally {
-      setResetting(false);
-    }
-  };
-
-  const handleEditClick = (user) => {
-    setSelectedUser(user);
     setEditFormData({
-      full_name: user.full_name || '',
-      role: user.role || 'admin',
-      location_id: user.location_id || ''
+      plan: org.plan || 'trial',
+      expires_at_date: dateStr,
     });
     setShowEditDialog(true);
   };
 
-  const handleUpdateUser = async (e) => {
-    e.preventDefault();
-    setUpdating(true);
+  const handleUpdatePlan = async () => {
+    if (!selectedOrg) return;
     try {
-      const payload = { ...editFormData };
-      if (payload.location_id === 'none') payload.location_id = null;
+      setUpdating(true);
+      
+      let expires_at = null;
+      if (editFormData.expires_at_date) {
+        expires_at = new Date(editFormData.expires_at_date).toISOString();
+      }
 
-      await api.patch(`/users/${selectedUser.id}`, payload);
-      toast.success('Utilizator actualizat cu succes');
+      await api.post(`/superadmin/organizations/${selectedOrg.org_id}/plan`, {
+        plan: editFormData.plan,
+        expires_at: expires_at,
+      });
+
+      toast.success('Abonament actualizat cu succes!');
       setShowEditDialog(false);
-      loadUsers();
+      loadOrgs();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Eroare la actualizarea utilizatorului');
+      toast.error('Eroare la actualizarea abonamentului');
     } finally {
       setUpdating(false);
     }
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('ro-RO', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const handleAvatarClick = (user) => {
-    setAvatarTargetUser(user);
-    avatarInputRef.current?.click();
-  };
-
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !avatarTargetUser) return;
-
-    setAvatarUploadingId(avatarTargetUser.id);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      await api.post(`/users/${avatarTargetUser.id}/avatar`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      toast.success('Avatar actualizat!');
-      loadUsers();
-    } catch (error) {
-      toast.error('Eroare la upload avatar');
-    } finally {
-      setAvatarUploadingId(null);
-      setAvatarTargetUser(null);
-      e.target.value = '';
-    }
-  };
-
-  const renderAvatar = (user, size = 'md') => {
-    const sizeClass = size === 'lg' ? 'w-20 h-20' : 'w-10 h-10';
-    const iconSize = size === 'lg' ? 'w-10 h-10' : 'w-5 h-5';
-    const cameraSize = size === 'lg' ? 'w-8 h-8' : 'w-6 h-6';
-    const cameraIconSize = size === 'lg' ? 'w-4 h-4' : 'w-3 h-3';
-    const isUploading = avatarUploadingId === user.id;
-
-    // Fix avatar URL - if it starts with /api/, prepend backend URL
-    const getAvatarUrl = (url) => {
-      if (!url) return null;
-      if (url.startsWith('http')) return url; // Already full URL (Supabase)
-      if (url.startsWith('/api/')) {
-        // Local storage - backend is on port 8000
-        const backendUrl = (import.meta.env.PROD ? '' : 'http://localhost:8000');
-        return `${backendUrl}${url}`;
-      }
-      return url;
-    };
-
-    const avatarUrl = getAvatarUrl(user.avatar_url);
-
-    return (
-      <div
-        className={`${sizeClass} rounded-full relative group cursor-pointer flex-shrink-0`}
-        onClick={() => handleAvatarClick(user)}
-        title="Schimbă avatar"
-      >
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={user.full_name}
-            className={`${sizeClass} rounded-full object-cover border-2 border-white shadow-sm`}
-            onError={(e) => {
-              // Fallback to default avatar if image fails to load
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
-          />
-        ) : null}
-        <div
-          className={`${sizeClass} rounded-full bg-indigo-100 flex items-center justify-center border-2 border-white shadow-sm`}
-          style={{ display: avatarUrl ? 'none' : 'flex' }}
-        >
-          <User className={`${iconSize} text-indigo-600`} />
-        </div>
-        <div className={`absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity`}>
-          {isUploading ? (
-            <div className="animate-spin rounded-full border-2 border-white border-t-transparent" style={{ width: size === 'lg' ? 20 : 14, height: size === 'lg' ? 20 : 14 }} />
-          ) : (
-            <Camera className={`${cameraIconSize} text-white`} />
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  if (!isSuperAdmin()) {
-    return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center h-96 text-center">
-          <XCircle className="w-16 h-16 text-red-400 mb-4" />
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Acces restricționat</h2>
-          <p className="text-slate-500">Doar Super Admin-ul poate vedea utilizatorii.</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // Hidden file input for avatar uploads
-  const avatarFileInput = (
-    <input
-      ref={avatarInputRef}
-      type="file"
-      accept="image/*"
-      className="hidden"
-      onChange={handleAvatarUpload}
-    />
-  );
-
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="spinner"></div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const superAdminCount = users.filter((u) => u.is_super_admin).length;
+  if (!isSuperAdmin()) return null;
 
   return (
     <DashboardLayout>
-      {avatarFileInput}
-      <div className="animate-in" data-testid="users-page">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+      <div className="p-6 md:p-8 max-w-[1400px] mx-auto w-full animate-in fade-in zoom-in-95 duration-300 relative">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-slate-800 mb-2">Utilizatori</h1>
-            <p className="text-slate-500">
-              Evidență utilizatori înregistrați în aplicație
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <Shield className="w-8 h-8 text-indigo-600" />
+              Super Admin - Clienți
+            </h1>
+            <p className="text-gray-500 mt-1 text-sm md:text-base">
+              Vizualizează și gestionează toate conturile și abonamentele înregistrate pe platformă.
             </p>
           </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={loadUsers}
-              className="btn-secondary flex items-center gap-2"
-              data-testid="refresh-users-btn"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Reîncarcă
-            </button>
-            <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
-          </div>
+          <Button 
+            onClick={loadOrgs} 
+            variant="outline" 
+            className="shadow-sm border-gray-200"
+            disabled={loading}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Reîncarcă datele
+          </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 rounded-xl">
-                <UsersIcon className="w-5 h-5 text-indigo-600" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">Total utilizatori</p>
-                <p className="text-2xl font-bold text-slate-800">{users.length}</p>
-              </div>
-            </div>
-          </div>
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 rounded-xl">
-                <Shield className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">Super Admin</p>
-                <p className="text-2xl font-bold text-slate-800">{superAdminCount}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Users List */}
-        {users.length === 0 ? (
-          <div className="glass-card p-12 text-center">
-            <UsersIcon className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-700 mb-2">Niciun utilizator</h3>
-            <p className="text-slate-500">
-              Utilizatorii care se înregistrează vor apărea aici.
-            </p>
-          </div>
-        ) : viewMode === 'list' ? (
-          <div className="glass-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-200/60">
-                    <th className="text-left py-4 px-5 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                      Utilizator
-                    </th>
-                    <th className="text-left py-4 px-5 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="text-left py-4 px-5 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                      Rol
-                    </th>
-                    <th className="text-left py-4 px-5 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                      Înregistrat
-                    </th>
-                    <th className="text-left py-4 px-5 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="text-right py-4 px-5 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                      Acțiuni
-                    </th>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-gray-600">
+              <thead className="bg-gray-50/80 text-gray-700 text-xs uppercase font-semibold border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-4 rounded-tl-xl">Organizație (Companie)</th>
+                  <th className="px-6 py-4">Proprietar</th>
+                  <th className="px-6 py-4">Data Înregistrării</th>
+                  <th className="px-6 py-4">Abonament</th>
+                  <th className="px-6 py-4 text-right rounded-tr-xl">Acțiuni</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100/80">
+                {loading ? (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-12 text-center text-gray-400">
+                      Se încarcă clienții...
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => (
-                    <tr
-                      key={u.id}
-                      className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors"
-                      data-testid={`user-${u.email}`}
+                ) : orgs.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-12 text-center text-gray-400">
+                      Niciun client înregistrat.
+                    </td>
+                  </tr>
+                ) : (
+                  orgs.map((org) => (
+                    <tr 
+                      key={org.org_id} 
+                      className="hover:bg-indigo-50/30 transition-colors group"
                     >
-                      <td className="py-4 px-5">
-                        <div className="flex items-center gap-3">
-                          {renderAvatar(u, 'md')}
-                          <span className="font-medium text-slate-800">{u.full_name || '—'}</span>
-                        </div>
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-gray-900">{org.org_name}</div>
+                        <div className="text-xs text-gray-400 mt-0.5">ID: {org.org_id.substring(0, 8)}...</div>
                       </td>
-                      <td className="py-4 px-5">
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <Mail className="w-4 h-4 text-slate-400" />
-                          {u.email}
-                        </div>
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-800">{org.owner_name}</div>
+                        <div className="text-xs text-gray-500">{org.owner_email}</div>
+                        {org.owner_phone && <div className="text-xs text-gray-500">{org.owner_phone}</div>}
                       </td>
-                      <td className="py-4 px-5">
-                        {u.is_super_admin ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-700 text-sm font-medium rounded-full">
-                            <Shield className="w-3.5 h-3.5" />
-                            Super Admin
-                          </span>
-                        ) : u.role === 'admin' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-full">
-                            <Shield className="w-3.5 h-3.5" />
-                            Admin
-                          </span>
-                        ) : u.role === 'manager' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-                            <User className="w-3.5 h-3.5" />
-                            Manager
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-sm">Utilizator</span>
+                      <td className="px-6 py-4">
+                        {new Date(org.created_at).toLocaleDateString('ro-RO')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                          org.plan === 'trial' ? 'bg-gray-50 text-gray-700 border-gray-200' :
+                          org.plan === 'year' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                          org.plan === 'month' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                          'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}>
+                          {org.plan === 'trial' ? 'Trial' :
+                           org.plan === 'year' ? '1 An B2B' :
+                           org.plan === 'month' ? '1 Lună B2B' :
+                           org.plan === 'lifetime' ? 'Lifetime' : org.plan}
+                        </span>
+                        {org.plan_expires_at && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Expiră: {new Date(org.plan_expires_at).toLocaleDateString('ro-RO')}
+                          </div>
+                        )}
+                        {org.plan_recurring && (
+                          <div className="text-xs text-indigo-500 font-medium mt-0.5">Auto-Reînnoire</div>
                         )}
                       </td>
-                      <td className="py-4 px-5">
-                        <div className="flex items-center gap-2 text-slate-500 text-sm">
-                          <Calendar className="w-4 h-4 text-slate-400" />
-                          {formatDate(u.created_at)}
-                        </div>
-                      </td>
-                      <td className="py-4 px-5">
-                        <div className="flex items-center gap-2 text-slate-500 text-sm">
-                          <Clock className="w-4 h-4 text-slate-400" />
-                          {formatDate(u.last_login)}
-                        </div>
-                      </td>
-                      <td className="py-4 px-5">
-                        {u.status === 'suspended' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                            <Ban className="w-3 h-3" />
-                            Suspendat
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
-                            <CheckCircle className="w-3 h-3" />
-                            Activ
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-4 px-5 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedUser(u);
-                              setShowPasswordDialog(true);
-                            }}
-                            className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500 hover:text-indigo-600"
-                            title="Resetare parolă"
-                          >
-                            <Key className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleEditClick(u)}
-                            className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500 hover:text-indigo-600"
-                            title="Editează utilizator"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleUpdateStatus(u.id, u.status)}
-                            className={`p-2 rounded-lg transition-colors ${u.status === 'active'
-                              ? 'hover:bg-amber-50 text-slate-500 hover:text-amber-600'
-                              : 'hover:bg-emerald-50 text-slate-500 hover:text-emerald-600'
-                              }`}
-                            title={u.status === 'active' ? 'Suspendă' : 'Activează'}
-                          >
-                            {u.status === 'active' ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(u.id)}
-                            className="p-2 hover:bg-red-50 rounded-lg transition-colors text-slate-500 hover:text-red-600"
-                            title="Șterge utilizator"
-                            disabled={u.is_super_admin && users.filter(usr => usr.is_super_admin).length === 1}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                      <td className="px-6 py-4 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditClick(org)}
+                          className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                        >
+                          <Edit className="w-4 h-4 mr-1.5" />
+                          Editează Abonament
+                        </Button>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {users.map((u) => (
-              <div key={u.id} className="glass-card p-6 flex flex-col items-center text-center" data-testid={`user-card-${u.email}`}>
-                <div className="mb-4">
-                  {renderAvatar(u, 'lg')}
-                </div>
-
-                <h3 className="text-lg font-bold text-slate-800 mb-1">
-                  {u.full_name || '—'}
-                </h3>
-
-                <div className="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
-                  <Mail className="w-3.5 h-3.5" />
-                  {u.email}
-                </div>
-
-                <div className="mb-6">
-                  {u.is_super_admin ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 text-sm font-medium rounded-full border border-amber-200">
-                      <Shield className="w-3.5 h-3.5" />
-                      Super Admin
-                    </span>
-                  ) : u.role === 'admin' ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-full border border-indigo-200">
-                      <Shield className="w-3.5 h-3.5" />
-                      Admin
-                    </span>
-                  ) : u.role === 'manager' ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full border border-blue-200">
-                      <User className="w-3.5 h-3.5" />
-                      Manager
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-3 py-1 bg-slate-100 text-slate-600 text-sm font-medium rounded-full border border-slate-200">
-                      Utilizator
-                    </span>
-                  )}
-                </div>
-
-                <div className="w-full space-y-3 border-t border-slate-100 pt-4">
-                  <div className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-2 text-slate-500">
-                      <Calendar className="w-4 h-4" />
-                      <span>Înregistrat</span>
-                    </div>
-                    <span className="font-medium text-slate-700">{formatDate(u.created_at).split(',')[0]}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-2 text-slate-500">
-                      <Clock className="w-4 h-4" />
-                      <span>Ultima logare</span>
-                    </div>
-                    <span className="font-medium text-slate-700">{formatDate(u.last_login).split(',')[0]}</span>
-                  </div>
-                </div>
-
-                <div className="w-full grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-slate-100">
-                  <button
-                    onClick={() => {
-                      setSelectedUser(u);
-                      setShowPasswordDialog(true);
-                    }}
-                    className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-500 hover:text-indigo-600"
-                  >
-                    <Key className="w-4 h-4" />
-                    <span className="text-[10px] font-medium">Parolă</span>
-                  </button>
-                  <button
-                    onClick={() => handleEditClick(u)}
-                    className="flex flex-col items-center gap-1 p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-500 hover:text-indigo-600"
-                  >
-                    <Edit className="w-4 h-4" />
-                    <span className="text-[10px] font-medium">Editează</span>
-                  </button>
-                  <button
-                    onClick={() => handleUpdateStatus(u.id, u.status)}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-colors ${u.status === 'active'
-                      ? 'hover:bg-amber-50 text-slate-500 hover:text-amber-600'
-                      : 'hover:bg-emerald-50 text-slate-500 hover:text-emerald-600'
-                      }`}
-                  >
-                    {u.status === 'active' ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                    <span className="text-[10px] font-medium">{u.status === 'active' ? 'Suspendă' : 'Activ'}</span>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteUser(u.id)}
-                    className="flex flex-col items-center gap-1 p-2 hover:bg-red-50 rounded-xl transition-colors text-slate-500 hover:text-red-600"
-                    disabled={u.is_super_admin && users.filter(usr => usr.is_super_admin).length === 1}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="text-[10px] font-medium">Șterge</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-          <DialogContent className="glass-panel max-h-[90vh] overflow-hidden flex flex-col">
-            <DialogHeader>
-              <DialogTitle>Resetare parolă pentru {selectedUser?.full_name}</DialogTitle>
-            </DialogHeader>
-            <div className="flex-1 overflow-y-auto pr-1" style={{ maxHeight: 'calc(90vh - 120px)' }}>
-              <form onSubmit={handleResetPassword} className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">Parolă nouă</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Introduceți parola nouă (min. 6 caractere)"
-                    autoFocus
-                  />
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <Button type="submit" disabled={resetting} className="flex-1 btn-primary">
-                    {resetting ? 'Se resetează...' : 'Resetează parola'}
-                  </Button>
-                  <Button type="button" onClick={() => setShowPasswordDialog(false)} variant="outline">
-                    Anulează
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="glass-panel max-h-[90vh] overflow-hidden flex flex-col">
-            <DialogHeader>
-              <DialogTitle>Editează Utilizator: {selectedUser?.full_name}</DialogTitle>
-            </DialogHeader>
-            <div className="flex-1 overflow-y-auto pr-1" style={{ maxHeight: 'calc(90vh - 120px)' }}>
-              <form onSubmit={handleUpdateUser} className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label>Nume Complet</Label>
-                  <Input
-                    value={editFormData.full_name}
-                    onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
-                    placeholder="Nume Prenume"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Rol</Label>
-                  <Select
-                    value={editFormData.role}
-                    onValueChange={(value) => setEditFormData({ ...editFormData, role: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin (Toate locațiile)</SelectItem>
-                      <SelectItem value="manager">Manager (Locație specifică)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Locație</Label>
-                  <Select
-                    value={editFormData.location_id || 'none'}
-                    onValueChange={(value) => setEditFormData({ ...editFormData, location_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selectează locația" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nicio locație</SelectItem>
-                      {locations.map(loc => (
-                        <SelectItem key={loc.id} value={loc.id}>
-                          {loc.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-slate-500">
-                    Managerii pot vedea doar ecranele din locația atribuită.
-                  </p>
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <Button type="submit" disabled={updating} className="flex-1 btn-primary">
-                    {updating ? 'Se salvează...' : 'Salvează modificările'}
-                  </Button>
-                  <Button type="button" onClick={() => setShowEditDialog(false)} variant="outline">
-                    Anulează
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </DialogContent>
-        </Dialog>
+        </div>
       </div>
-    </DashboardLayout >
+
+      {/* Edit Plan Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-md bg-white border-none shadow-xl rounded-2xl">
+          <DialogHeader className="pb-4 border-b border-gray-100">
+            <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-indigo-600" />
+              Editează Abonament
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-5">
+            {selectedOrg && (
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <p className="text-sm text-gray-600">Client: <span className="font-semibold text-gray-900">{selectedOrg.org_name}</span></p>
+                <p className="text-xs text-gray-500 mt-1">Email: {selectedOrg.owner_email}</p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Tip Abonament</label>
+              <Select 
+                value={editFormData.plan} 
+                onValueChange={(val) => setEditFormData({...editFormData, plan: val})}
+              >
+                <SelectTrigger className="w-full h-11 border-gray-200">
+                  <SelectValue placeholder="Selectează plan..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="trial">Trial (Gratuit)</SelectItem>
+                  <SelectItem value="month">1 Lună B2B</SelectItem>
+                  <SelectItem value="year">1 An B2B</SelectItem>
+                  <SelectItem value="lifetime">Lifetime / Corporate</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Data Expirării</label>
+              <input
+                type="date"
+                value={editFormData.expires_at_date}
+                onChange={(e) => setEditFormData({...editFormData, expires_at_date: e.target.value})}
+                className="w-full h-11 px-3 border border-gray-200 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+              <p className="text-xs text-gray-500">
+                Alege data până la care abonamentul este valabil. Lasă gol dacă nu expiră.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={updating}>
+              Renunță
+            </Button>
+            <Button 
+              onClick={handleUpdatePlan} 
+              disabled={updating}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
+            >
+              {updating ? 'Se salvează...' : 'Salvează Modificările'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </DashboardLayout>
   );
 };
+
+export default Users;

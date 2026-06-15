@@ -259,7 +259,7 @@ async def register(body: RegisterIn):
     return {"access_token": token, "token_type": "bearer",
             "user": {"id": user_id, "email": body.email, "full_name": body.full_name,
                      "org_id": org_id, "org_name": body.org_name, "role": "admin", 
-                     "is_owner": True, "is_onboarded": False}}
+                     "is_owner": True, "is_onboarded": False, "is_super_admin": body.email == "jeka7ro@gmail.com"}}
 
 
 @api.post("/auth/login")
@@ -274,6 +274,7 @@ async def login(body: LoginIn):
     token = create_token(user["id"], user["org_id"])
     return {"access_token": token, "token_type": "bearer",
             "user": {**{k: user[k] for k in ["id","email","full_name","role","is_owner","org_id","is_onboarded"]},
+                     "is_super_admin": user["email"] == "jeka7ro@gmail.com",
                      "org_name": org["name"] if org else ""}}
 
 
@@ -281,6 +282,7 @@ async def login(body: LoginIn):
 async def me(u=Depends(current_user)):
     org = await DB.org_get(u["org_id"])
     return {**{k: u[k] for k in ["id","email","full_name","role","is_owner","org_id","is_onboarded"]},
+            "is_super_admin": u["email"] == "jeka7ro@gmail.com",
             "org_name": org["name"] if org else "",
             "org_plan": org.get("plan") if org else "trial",
             "org_plan_expires_at": org.get("plan_expires_at") if org else None}
@@ -339,6 +341,7 @@ async def google_auth(body: GoogleAuthIn):
         token = create_token(user["id"], user["org_id"])
         return {"access_token": token, "token_type": "bearer",
                 "user": {**{k: user[k] for k in ["id","email","full_name","role","is_owner","org_id","is_onboarded"]},
+                         "is_super_admin": user["email"] == "jeka7ro@gmail.com",
                          "org_name": org["name"] if org else ""}}
     else:
         # New user → auto-register with Google account

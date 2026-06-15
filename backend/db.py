@@ -366,6 +366,15 @@ async def org_track_daily_usage(org_id: str, increment_seconds: int = 10) -> int
     )
     return current_used
 
+async def superadmin_get_all_orgs() -> List[Dict]:
+    return await _all("""
+        SELECT o.id as org_id, o.name as org_name, o.plan, o.plan_expires_at, o.plan_recurring, o.created_at,
+               u.email as owner_email, u.full_name as owner_name, u.phone as owner_phone
+        FROM organizations o
+        LEFT JOIN users u ON o.owner_id = u.id
+        ORDER BY o.created_at DESC
+    """)
+
 
 # ─────────────────────────────────────── USERS ────────────────────────────────
 
