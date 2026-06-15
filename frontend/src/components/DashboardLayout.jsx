@@ -41,10 +41,10 @@ const menuItems = [
 ];
 
 const adminMenuItems = [
-  { path: '/users', icon: Users, key: 'users' },
-  { path: '/invitations', icon: UserPlus, key: 'invitations' },
-  { path: '/activity-logs', icon: Activity, key: 'activityLogs' },
-  { path: '/billing', icon: DollarSign, key: 'billing' },
+  { path: '/users', icon: Users, key: 'users', label: 'Clienți' },
+  { path: '/invitations', icon: UserPlus, key: 'invitations', label: 'Invitații' },
+  { path: '/activity-logs', icon: Activity, key: 'activityLogs', label: 'Jurnal Activitate' },
+  { path: '/billing', icon: DollarSign, key: 'billing', label: 'Facturare' },
 ];
 
 export const DashboardLayout = ({ children }) => {
