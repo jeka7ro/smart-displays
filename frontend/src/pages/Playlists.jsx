@@ -48,6 +48,20 @@ export const Playlists = () => {
   // Fix: Add missing state for selectedPlaylists
   const [selectedPlaylists, setSelectedPlaylists] = useState([]);
   const [showSimulation, setShowSimulation] = useState(false);
+  const [previewItem, setPreviewItem] = useState(null);
+
+  const getFileUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/api/uploads') || url.startsWith('/uploads')) {
+      const cleanUrl = url.startsWith('/api') ? url.substring(4) : url;
+      if (import.meta.env.PROD) {
+        return `${process.env.REACT_APP_BACKEND_URL || ''}${cleanUrl}`;
+      }
+      return `http://${window.location.hostname}:8000${cleanUrl}`;
+    }
+    return url;
+  };
   const [filterWithScreens, setFilterWithScreens] = useState(true); // Default to true
   const [selectedLocationForScreens, setSelectedLocationForScreens] = useState(null);
 
@@ -908,17 +922,24 @@ export const Playlists = () => {
                                           className="flex items-center justify-between p-2 bg-white border border-slate-100 rounded-lg hover:border-red-200 hover:shadow-sm transition-all group"
                                         >
                                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                                            <div className="w-10 h-10 rounded border border-slate-100 overflow-hidden shrink-0 bg-black flex items-center justify-center shadow-sm relative group/thumb">
+                                            <div 
+                                              className="w-10 h-10 rounded border border-slate-100 overflow-hidden shrink-0 bg-black flex items-center justify-center shadow-sm relative group/thumb cursor-pointer"
+                                              onClick={(e) => { e.stopPropagation(); setPreviewItem(item); }}
+                                              title="Click pentru previzualizare"
+                                            >
+                                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center z-10 transition-opacity">
+                                                <Eye className="w-4 h-4 text-white" />
+                                              </div>
                                               {item.type === 'video' ? (
                                                 item.thumbnail_url ? (
-                                                  <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                                                  <img src={getFileUrl(item.thumbnail_url)} alt="" className="w-full h-full object-cover" />
                                                 ) : (
                                                   <div className="w-full h-full bg-slate-800 flex items-center justify-center">
                                                     <Film className="w-4 h-4 text-slate-400" />
                                                   </div>
                                                 )
                                               ) : (
-                                                <img src={item.thumbnail_url || item.file_url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                                <img src={getFileUrl(item.thumbnail_url || item.file_url)} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                                               )}
                                             </div>
                                             <div>
@@ -958,17 +979,24 @@ export const Playlists = () => {
                                           className="flex items-center justify-between p-2 bg-white border border-slate-100 rounded-lg hover:border-red-200 hover:shadow-sm transition-all group"
                                         >
                                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                                            <div className="w-10 h-10 rounded border border-slate-100 overflow-hidden shrink-0 bg-black flex items-center justify-center shadow-sm relative group/thumb">
+                                            <div 
+                                              className="w-10 h-10 rounded border border-slate-100 overflow-hidden shrink-0 bg-black flex items-center justify-center shadow-sm relative group/thumb cursor-pointer"
+                                              onClick={(e) => { e.stopPropagation(); setPreviewItem(item); }}
+                                              title="Click pentru previzualizare"
+                                            >
+                                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center z-10 transition-opacity">
+                                                <Eye className="w-4 h-4 text-white" />
+                                              </div>
                                               {item.type === 'video' ? (
                                                 item.thumbnail_url ? (
-                                                  <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                                                  <img src={getFileUrl(item.thumbnail_url)} alt="" className="w-full h-full object-cover" />
                                                 ) : (
                                                   <div className="w-full h-full bg-slate-800 flex items-center justify-center">
                                                     <Film className="w-4 h-4 text-slate-400" />
                                                   </div>
                                                 )
                                               ) : (
-                                                <img src={item.thumbnail_url || item.file_url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                                <img src={getFileUrl(item.thumbnail_url || item.file_url)} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                                               )}
                                             </div>
                                             <div>
@@ -1803,6 +1831,29 @@ export const Playlists = () => {
           </Dialog>
         )
       }
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewItem} onOpenChange={(open) => !open && setPreviewItem(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black border-slate-800">
+          <div className="relative w-full h-[80vh] flex items-center justify-center">
+            {previewItem?.type === 'video' ? (
+              <video 
+                src={previewItem.file_url} 
+                controls 
+                autoPlay 
+                className="max-w-full max-h-full object-contain"
+              />
+            ) : (
+              <img 
+                src={previewItem?.file_url} 
+                className="max-w-full max-h-full object-contain"
+                alt=""
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </>
   );
 };
