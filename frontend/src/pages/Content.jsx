@@ -41,6 +41,7 @@ export const Content = () => {
     icon: 'folder'
   });
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
   const [previewItem, setPreviewItem] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [viewMode, setViewMode] = useState('list');
@@ -1290,7 +1291,38 @@ export const Content = () => {
                         <TabsContent value="file" className="space-y-4 mt-4">
                           <div>
                             <Label className="text-base font-semibold">Selectează fișier(e)</Label>
-                            <div className="mt-3 border-2 border-dashed border-red-300 rounded-xl p-6 bg-gradient-to-br from-red-50/50 to-red-50/30 hover:from-red-50 hover:to-red-50 transition-all">
+                            <div 
+                              className={`mt-3 border-2 border-dashed rounded-xl p-6 transition-all ${
+                                isDragging 
+                                  ? 'border-red-500 bg-red-100 scale-[1.02]' 
+                                  : 'border-red-300 bg-gradient-to-br from-red-50/50 to-red-50/30 hover:from-red-50 hover:to-red-50'
+                              }`}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                setIsDragging(true);
+                              }}
+                              onDragLeave={(e) => {
+                                e.preventDefault();
+                                setIsDragging(false);
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                setIsDragging(false);
+                                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                  const newFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
+                                  if (newFiles.length > 0) {
+                                    setSelectedFiles(prev => [...prev, ...newFiles]);
+                                    if (!formData.title) {
+                                      const file = newFiles[0];
+                                      const type = file.type.startsWith('video') ? 'video' : 'image';
+                                      setFormData(prev => ({ ...prev, type, title: file.name }));
+                                    }
+                                  } else {
+                                    toast.error('Doar imagini și videoclipuri sunt acceptate.');
+                                  }
+                                }
+                              }}
+                            >
                               <div className="flex flex-col items-center mb-4">
                                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-3">
                                   <Upload className="w-8 h-8 text-red-600" />
