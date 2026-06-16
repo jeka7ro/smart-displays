@@ -1310,21 +1310,35 @@ export const Content = () => {
                                 accept="image/*,video/*"
                                 multiple
                                 onChange={(e) => {
-                                  const files = e.target.files;
-                                  setSelectedFiles(files);
-                                  if (files.length > 0) {
-                                    const file = files[0];
+                                  const newFiles = Array.from(e.target.files);
+                                  setSelectedFiles(prev => [...prev, ...newFiles]);
+                                  if (newFiles.length > 0 && !formData.title) {
+                                    const file = newFiles[0];
                                     const type = file.type.startsWith('video') ? 'video' : 'image';
-                                    setFormData({ ...formData, type, title: formData.title || file.name });
+                                    setFormData({ ...formData, type, title: file.name });
                                   }
                                 }}
                                 className="hidden"
                               />
                               {selectedFiles.length > 0 && (
                                 <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                  <p className="text-sm text-green-700 font-semibold flex items-center gap-2">
+                                  <div className="flex items-center gap-2 mb-2 font-semibold text-green-700">
                                     <span className="text-green-600">✓</span> {selectedFiles.length} fișier(e) selectat(e)
-                                  </p>
+                                  </div>
+                                  <div className="max-h-32 overflow-y-auto space-y-1">
+                                    {selectedFiles.map((file, idx) => (
+                                      <div key={idx} className="flex items-center justify-between bg-white px-2 py-1 rounded shadow-sm text-xs">
+                                        <span className="truncate w-4/5">{file.name}</span>
+                                        <button 
+                                          type="button" 
+                                          onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== idx))}
+                                          className="text-red-500 hover:text-red-700 font-bold px-1"
+                                        >
+                                          ✕
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>
