@@ -1206,7 +1206,7 @@ export const Content = () => {
                       Adăugă conținut
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="glass-panel" aria-describedby={undefined}>
+                  <DialogContent className="glass-panel max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
                     <DialogHeader>
                       <DialogTitle>Adăugă conținut nou</DialogTitle>
                     </DialogHeader>
