@@ -162,8 +162,8 @@ export const DisplayScreen = () => {
           if (zone.content?.file_url) {
             mediaUrls.push(getFileUrl(zone.content.file_url));
           }
-          if (zone.playlist?.content_items) {
-            for (const item of zone.playlist.content_items) {
+          if (zone.playlist?.items) {
+            for (const item of zone.playlist.items) {
               if (item.file_url) mediaUrls.push(getFileUrl(item.file_url));
             }
           }
@@ -244,15 +244,15 @@ export const DisplayScreen = () => {
 
     // Playlist rotation
     const zoneWithPlaylist = zonesList.find(z => z.content_type === 'playlist');
-    if (zoneWithPlaylist?.playlist?.content_items?.length > 1) {
+    if (zoneWithPlaylist?.playlist?.items?.length > 1) {
       const playlist = zoneWithPlaylist.playlist;
-      const currentItem = playlist.content_items[currentPlaylistIndex];
+      const currentItem = playlist.items[currentPlaylistIndex];
       // Clamp to minimum 3s — prevents 0/NaN/undefined duration causing immediate black screen
       const rawDuration = Number(currentItem?.duration);
       const duration = (isFinite(rawDuration) && rawDuration >= 1) ? rawDuration : 10;
 
       const interval = setInterval(() => {
-        setCurrentPlaylistIndex(prev => (prev + 1) % playlist.content_items.length);
+        setCurrentPlaylistIndex(prev => (prev + 1) % playlist.items.length);
       }, Math.max(duration, 3) * 1000);
 
       return () => clearInterval(interval);
@@ -553,7 +553,7 @@ export const DisplayScreen = () => {
     if (zoneConfig.content_type === 'single_content') {
       contentItem = zoneConfig.content;
     } else if (zoneConfig.content_type === 'playlist') {
-      const playlistItems = zoneConfig.playlist?.content_items || [];
+      const playlistItems = zoneConfig.playlist?.items || [];
       contentItem = playlistItems[currentPlaylistIndex] || playlistItems[0];
     } else if (zoneConfig.content_type === 'digital_menu') {
       return renderDigitalMenu(zoneConfig);
