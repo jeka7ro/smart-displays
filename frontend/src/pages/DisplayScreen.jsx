@@ -29,8 +29,7 @@ const getFileUrl = (url) => {
 
   if (url.startsWith('http')) return url;
   if (url.startsWith('/api/uploads') || url.startsWith('/uploads')) {
-    const cleanUrl = url.startsWith('/api') ? url.substring(4) : url;
-    return `${BACKEND_URL || 'http://localhost:8000'}${cleanUrl}`;
+    return url.startsWith('/api') ? url.substring(4) : url;
   }
   return url;
 };

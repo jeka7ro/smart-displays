@@ -13,6 +13,13 @@
   status = 200
   force  = true
 
+# Proxy Uploads to backend
+[[redirects]]
+  from   = "/uploads/*"
+  to     = "https://smart-displays-api.onrender.com/uploads/:splat"
+  status = 200
+  force  = true
+
 # TV display page
 [[redirects]]
   from   = "/tv/*"

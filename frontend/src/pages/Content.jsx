@@ -554,10 +554,13 @@ export const Content = () => {
       if (fileUrl.startsWith(SUPABASE_CONTENT)) return '/supabase-media/' + fileUrl.substring(SUPABASE_CONTENT.length);
       if (fileUrl.startsWith(SUPABASE_AUDIO)) return '/supabase-audio/' + fileUrl.substring(SUPABASE_AUDIO.length);
     }
-    // If it's a relative URL, prepend backend URL
+    // If it's a relative URL, let the proxy handle it
     if (fileUrl.startsWith('/api/uploads') || fileUrl.startsWith('/uploads')) {
       const cleanUrl = fileUrl.startsWith('/api') ? fileUrl.substring(4) : fileUrl;
-      return `${(import.meta.env.PROD ? '' : 'http://localhost:8000')}${cleanUrl}`;
+      if (import.meta.env.PROD) {
+        return `${process.env.REACT_APP_BACKEND_URL || ''}${cleanUrl}`;
+      }
+      return `http://${window.location.hostname}:8000${cleanUrl}`;
     }
     // Otherwise it's an external URL (or direct Supabase on localhost)
     return fileUrl;

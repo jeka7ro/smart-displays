@@ -16,7 +16,10 @@ export const ScreenSync = () => {
     if (url.startsWith('http')) return url;
     if (url.startsWith('/api/uploads') || url.startsWith('/uploads')) {
       const cleanUrl = url.startsWith('/api') ? url.substring(4) : url;
-      return `${BACKEND_URL || 'http://localhost:8000'}${cleanUrl}`;
+      if (import.meta.env.PROD) {
+        return `${process.env.REACT_APP_BACKEND_URL || ''}${cleanUrl}`;
+      }
+      return `http://${window.location.hostname}:8000${cleanUrl}`;
     }
     return `${BACKEND_URL}${url}`;
   };
