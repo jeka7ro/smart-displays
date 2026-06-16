@@ -1074,17 +1074,22 @@ export const Playlists = () => {
                                       </div>
 
                                       {/* Thumbnail */}
-                                      <div className="w-12 h-8 rounded border border-slate-100 overflow-hidden shrink-0 bg-black flex items-center justify-center relative">
+                                      <div 
+                                        className="w-12 h-8 rounded border border-slate-100 overflow-hidden shrink-0 bg-black flex items-center justify-center relative group/thumb cursor-pointer"
+                                        onClick={(e) => { e.stopPropagation(); if(contentItem) setPreviewItem(contentItem); }}
+                                        title="Click pentru previzualizare"
+                                      >
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center z-10 transition-opacity">
+                                          <Eye className="w-4 h-4 text-white" />
+                                        </div>
                                         {contentItem?.type === 'video' ? (
                                           contentItem?.thumbnail_url ? (
-                                            <img src={contentItem.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                                            <img src={getFileUrl(contentItem.thumbnail_url)} alt="" className="w-full h-full object-cover" />
                                           ) : (
-                                            <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                                              <Film className="w-4 h-4 text-slate-400" />
-                                            </div>
+                                            <video src={getFileUrl(contentItem.file_url) + '#t=0.1'} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                                           )
                                         ) : (
-                                          <img src={contentItem?.thumbnail_url || contentItem?.file_url} alt="" className="w-full h-full object-cover" />
+                                          <img src={getFileUrl(contentItem?.thumbnail_url || contentItem?.file_url)} alt="" className="w-full h-full object-cover" />
                                         )}
                                       </div>
 
@@ -1107,15 +1112,25 @@ export const Playlists = () => {
                                         </div>
                                       </div>
 
-                                      {/* Delete button */}
-                                      <button
-                                        type="button"
-                                        onClick={() => removeFromPlaylist(index)}
-                                        className="p-1.5 hover:bg-rose-50 text-slate-300 hover:text-rose-500 rounded-md transition-colors"
-                                        title="Șterge"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
+                                      {/* Actions */}
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          type="button"
+                                          onClick={(e) => { e.stopPropagation(); if(contentItem) setPreviewItem(contentItem); }}
+                                          title="Previzualizează"
+                                          className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded transition-colors"
+                                        >
+                                          <Eye className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => removeFromPlaylist(index)}
+                                          className="p-1.5 hover:bg-rose-50 text-slate-300 hover:text-rose-500 rounded-md transition-colors"
+                                          title="Șterge"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
                                     </div>
                                   );
                                 })
