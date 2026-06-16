@@ -1297,16 +1297,24 @@ export const Content = () => {
                                   ? 'border-red-500 bg-red-100 scale-[1.02]' 
                                   : 'border-red-300 bg-gradient-to-br from-red-50/50 to-red-50/30 hover:from-red-50 hover:to-red-50'
                               }`}
+                              onDragEnter={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setIsDragging(true);
+                              }}
                               onDragOver={(e) => {
                                 e.preventDefault();
+                                e.stopPropagation();
                                 setIsDragging(true);
                               }}
                               onDragLeave={(e) => {
                                 e.preventDefault();
+                                e.stopPropagation();
                                 setIsDragging(false);
                               }}
                               onDrop={(e) => {
                                 e.preventDefault();
+                                e.stopPropagation();
                                 setIsDragging(false);
                                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                                   const newFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
