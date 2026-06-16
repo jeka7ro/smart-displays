@@ -601,6 +601,17 @@ async def tv_display(slug: str):
         if p_id:
             p = await DB._one("SELECT * FROM playlists WHERE id=$1", p_id)
             playlist = DB._row(p) if p else None
+            if playlist and playlist.get("items"):
+                hydrated_items = []
+                for item in playlist["items"]:
+                    c_item_id = item.get("content_id")
+                    if c_item_id:
+                        c_item = await DB._one("SELECT * FROM content WHERE id=$1", c_item_id)
+                        if c_item:
+                            full_item = dict(item)
+                            full_item.update(DB._row(c_item))
+                            hydrated_items.append(full_item)
+                playlist["items"] = hydrated_items
         
         zones_config.append({
             "zone_id": z["zone_id"],
