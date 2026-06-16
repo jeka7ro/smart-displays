@@ -934,9 +934,7 @@ export const Playlists = () => {
                                                 item.thumbnail_url ? (
                                                   <img src={getFileUrl(item.thumbnail_url)} alt="" className="w-full h-full object-cover" />
                                                 ) : (
-                                                  <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                                                    <Film className="w-4 h-4 text-slate-400" />
-                                                  </div>
+                                                  <video src={getFileUrl(item.file_url) + '#t=0.1'} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                                                 )
                                               ) : (
                                                 <img src={getFileUrl(item.thumbnail_url || item.file_url)} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
@@ -947,13 +945,22 @@ export const Playlists = () => {
                                               <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{item.type}</p>
                                             </div>
                                           </div>
-                                          <Button
-                                            type="button"
-                                            onClick={() => addContentToPlaylist(item.id)}
-                                            className="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-all text-xs font-bold px-3 py-1.5 h-7 rounded-lg border-none shadow-none"
-                                          >
-                                            Adaugă
-                                          </Button>
+                                          <div className="flex items-center gap-2">
+                                            <Button
+                                              type="button"
+                                              onClick={() => setPreviewItem(item)}
+                                              className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-all text-xs font-bold px-2 py-1.5 h-7 rounded-lg border-none shadow-none flex items-center gap-1"
+                                            >
+                                              <Eye className="w-3 h-3" /> Preview
+                                            </Button>
+                                            <Button
+                                              type="button"
+                                              onClick={() => addContentToPlaylist(item.id)}
+                                              className="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-all text-xs font-bold px-3 py-1.5 h-7 rounded-lg border-none shadow-none"
+                                            >
+                                              Adaugă
+                                            </Button>
+                                          </div>
                                         </div>
                                       ))}
                                     </div>
@@ -991,9 +998,7 @@ export const Playlists = () => {
                                                 item.thumbnail_url ? (
                                                   <img src={getFileUrl(item.thumbnail_url)} alt="" className="w-full h-full object-cover" />
                                                 ) : (
-                                                  <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                                                    <Film className="w-4 h-4 text-slate-400" />
-                                                  </div>
+                                                  <video src={getFileUrl(item.file_url) + '#t=0.1'} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                                                 )
                                               ) : (
                                                 <img src={getFileUrl(item.thumbnail_url || item.file_url)} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
@@ -1004,13 +1009,22 @@ export const Playlists = () => {
                                               <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{item.type}</p>
                                             </div>
                                           </div>
-                                          <Button
-                                            type="button"
-                                            onClick={() => addContentToPlaylist(item.id)}
-                                            className="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-all text-xs font-bold px-3 py-1.5 h-7 rounded-lg border-none shadow-none"
-                                          >
-                                            Adaugă
-                                          </Button>
+                                          <div className="flex items-center gap-2">
+                                            <Button
+                                              type="button"
+                                              onClick={() => setPreviewItem(item)}
+                                              className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-all text-xs font-bold px-2 py-1.5 h-7 rounded-lg border-none shadow-none flex items-center gap-1"
+                                            >
+                                              <Eye className="w-3 h-3" /> Preview
+                                            </Button>
+                                            <Button
+                                              type="button"
+                                              onClick={() => addContentToPlaylist(item.id)}
+                                              className="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-all text-xs font-bold px-3 py-1.5 h-7 rounded-lg border-none shadow-none"
+                                            >
+                                              Adaugă
+                                            </Button>
+                                          </div>
                                         </div>
                                       ))}
                                     </div>
