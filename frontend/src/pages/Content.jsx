@@ -734,7 +734,7 @@ export const Content = () => {
                         ) : (videoAutoplay ? (
                           <video
                             key={`v-${item.id}-${videoAutoplay}`}
-                            src={getFileUrl(item.file_url)}
+                            src={getFileUrl(item.file_url) + '#t=0.1'}
                             className="w-full h-full object-cover"
                             muted
                             autoPlay
@@ -752,14 +752,21 @@ export const Content = () => {
                             </div>
                           </div>
                         ) : (
-                          <video
-                            key={`v-${item.id}-${videoAutoplay}`}
-                            src={getFileUrl(item.file_url)}
-                            className="w-full h-full object-cover"
-                            muted
-                            playsInline
-                            preload="metadata"
-                          />
+                          <div className="relative w-full h-full">
+                            <video
+                              key={`v-${item.id}-${videoAutoplay}`}
+                              src={getFileUrl(item.file_url) + '#t=0.1'}
+                              className="w-full h-full object-cover"
+                              muted
+                              playsInline
+                              preload="metadata"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                              <div className="bg-white/30 backdrop-blur-sm rounded-full p-0.5">
+                                <Film className="w-3 h-3 text-white" />
+                              </div>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </td>
@@ -955,9 +962,16 @@ export const Content = () => {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-full bg-slate-900 flex items-center justify-center">
-                      <Film className="w-12 h-12 text-slate-500" />
-                    </div>
+                    <video
+                      key={`v-grid-${item.id}-${videoAutoplay}`}
+                      src={getFileUrl(item.file_url) + '#t=0.1'}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      muted
+                      autoPlay={videoAutoplay}
+                      loop
+                      playsInline
+                      preload="metadata"
+                    />
                   )}
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center cursor-pointer" onClick={(e) => { e.stopPropagation(); handlePreview(item); }}>
                     <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 border border-white/30 group-hover:scale-110 transition-transform">
