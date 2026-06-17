@@ -627,6 +627,9 @@ async def content_insert(row: Dict) -> None:
 async def content_update_title(content_id: str, org_id: str, title: str) -> None:
     await _exec("UPDATE content SET title=$1 WHERE id=$2 AND org_id=$3", title, content_id, org_id)
 
+async def content_update_folder(content_id: str, org_id: str, folder_id: str | None) -> None:
+    await _exec("UPDATE content SET folder_id=$1 WHERE id=$2 AND org_id=$3", folder_id, content_id, org_id)
+
 async def content_delete(content_id: str, org_id: str) -> bool:
     # Clear from screen zones first
     await _exec("UPDATE screen_zones SET content_id=NULL WHERE content_id=$1", content_id)

@@ -223,6 +223,9 @@ class ScreenZoneIn(BaseModel):
 class TitleUpdate(BaseModel):
     title: str
 
+class FolderUpdate(BaseModel):
+    folder_id: Optional[str] = None
+
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str = Field(min_length=6)
@@ -776,6 +779,11 @@ async def upload_content(
 @api.patch("/content/{content_id}/title")
 async def rename_content(content_id: str, body: TitleUpdate, u=Depends(current_user)):
     await DB.content_update_title(content_id, u["org_id"], body.title)
+    return {"ok": True}
+
+@api.patch("/content/{content_id}/folder")
+async def move_content(content_id: str, body: FolderUpdate, u=Depends(current_user)):
+    await DB.content_update_folder(content_id, u["org_id"], body.folder_id)
     return {"ok": True}
 
 @api.delete("/content/{content_id}")
