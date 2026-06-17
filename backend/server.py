@@ -957,6 +957,8 @@ async def update_billing_config(request: Request, u=Depends(current_user)):
 @api.get("/dashboard/stats")
 async def get_dashboard_stats(u=Depends(current_user)):
     screens = await DB.screens_list(u["org_id"])
+    locations = await DB.locations_list(u["org_id"])
+    content = await DB.content_list(u["org_id"])
     org_data = await DB.org_get(u["org_id"])
     plan = org_data.get("plan", "trial") if org_data else "trial"
     expires_at = org_data.get("plan_expires_at") if org_data else None
@@ -980,11 +982,11 @@ async def get_dashboard_stats(u=Depends(current_user)):
         plan_recurring = False
         
     return {
-        "locations": 0,
-        "screens_total": len(screens),
-        "screens_online": sum(1 for s in screens if s.get("status") in ["online", "active"]),
+        "locations": len(locations),
+        "screens": len(screens),
+        "online_screens": sum(1 for s in screens if s.get("status") in ["online", "active"]),
         "products_active": 0,
-        "content_files": 0,
+        "content": len(content),
         "plan": plan,
         "plan_expires_at": expires_at.isoformat() if expires_at and isinstance(expires_at, datetime) else expires_at,
         "plan_recurring": plan_recurring,
