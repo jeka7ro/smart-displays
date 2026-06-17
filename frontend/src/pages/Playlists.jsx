@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { List as ListIcon, Plus, Edit, Trash2, ArrowUp, ArrowDown, LayoutGrid, Film, ImageIcon, Clock, Copy, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Folder, FolderOpen, Monitor, MapPin, Filter, Airplay, Eye } from 'lucide-react';
+import { List as ListIcon, Plus, Edit, Trash2, ArrowUp, ArrowDown, LayoutGrid, Film, ImageIcon, Clock, Copy, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Folder, FolderOpen, Monitor, MapPin, Filter, Airplay, Eye, CheckCircle2 } from 'lucide-react';
 import api from '../utils/api';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '../components/ui/dialog';
@@ -307,6 +307,22 @@ export const Playlists = () => {
       order: playlistItems.length,
       duration: defaultDuration
     }]);
+  };
+
+  const addAllFolderItems = (items) => {
+    const newPlaylistItems = [...playlistItems];
+    let orderCounter = newPlaylistItems.length;
+
+    items.forEach(item => {
+      const defaultDuration = item.duration || 10;
+      newPlaylistItems.push({
+        content_id: item.id,
+        order: orderCounter++,
+        duration: defaultDuration
+      });
+    });
+
+    setPlaylistItems(newPlaylistItems);
   };
 
   const removeFromPlaylist = (index) => {
@@ -914,12 +930,24 @@ export const Playlists = () => {
                                       )}
                                       <span className="text-sm font-bold text-slate-700 flex-1">{folder.name}</span>
                                       <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{folderItems.length}</span>
+                                      <Button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          addAllFolderItems(folderItems);
+                                        }}
+                                        className="ml-2 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white transition-all text-[10px] uppercase font-black px-2 py-1 h-6 rounded border-none shadow-none"
+                                      >
+                                        Adaugă Tot
+                                      </Button>
                                     </summary>
                                     <div className="ml-6 mt-2 space-y-2">
-                                      {folderItems.map(item => (
+                                      {folderItems.map(item => {
+                                        const isAdded = playlistItems.some(pi => pi.content_id === item.id);
+                                        return (
                                         <div
                                           key={item.id}
-                                          className="flex items-center justify-between p-2 bg-white border border-slate-100 rounded-lg hover:border-red-200 hover:shadow-sm transition-all group"
+                                          className={`flex items-center justify-between p-2 bg-white border ${isAdded ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-100'} rounded-lg hover:border-red-200 hover:shadow-sm transition-all group`}
                                         >
                                           <div className="flex items-center gap-3 flex-1 min-w-0">
                                             <div 
@@ -941,7 +969,10 @@ export const Playlists = () => {
                                               )}
                                             </div>
                                             <div>
-                                              <p className="text-sm font-bold text-slate-800 line-clamp-1">{item.title}</p>
+                                              <p className="text-sm font-bold text-slate-800 line-clamp-1 flex items-center gap-1">
+                                                {item.title}
+                                                {isAdded && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" title="Adăugat deja" />}
+                                              </p>
                                               <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{item.type}</p>
                                             </div>
                                           </div>
@@ -962,7 +993,7 @@ export const Playlists = () => {
                                             </Button>
                                           </div>
                                         </div>
-                                      ))}
+                                      )})}
                                     </div>
                                   </details>
                                 );
@@ -978,12 +1009,24 @@ export const Playlists = () => {
                                       <FolderOpen className="w-4 h-4 text-slate-400 group-open/folder:text-indigo-600" />
                                       <span className="text-sm font-bold text-slate-700 flex-1">Fără folder</span>
                                       <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{rootItems.length}</span>
+                                      <Button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          addAllFolderItems(rootItems);
+                                        }}
+                                        className="ml-2 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white transition-all text-[10px] uppercase font-black px-2 py-1 h-6 rounded border-none shadow-none"
+                                      >
+                                        Adaugă Tot
+                                      </Button>
                                     </summary>
                                     <div className="ml-6 mt-2 space-y-2">
-                                      {rootItems.map(item => (
+                                      {rootItems.map(item => {
+                                        const isAdded = playlistItems.some(pi => pi.content_id === item.id);
+                                        return (
                                         <div
                                           key={item.id}
-                                          className="flex items-center justify-between p-2 bg-white border border-slate-100 rounded-lg hover:border-red-200 hover:shadow-sm transition-all group"
+                                          className={`flex items-center justify-between p-2 bg-white border ${isAdded ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-100'} rounded-lg hover:border-red-200 hover:shadow-sm transition-all group`}
                                         >
                                           <div className="flex items-center gap-3 flex-1 min-w-0">
                                             <div 
@@ -1005,7 +1048,10 @@ export const Playlists = () => {
                                               )}
                                             </div>
                                             <div>
-                                              <p className="text-sm font-bold text-slate-800 line-clamp-1">{item.title}</p>
+                                              <p className="text-sm font-bold text-slate-800 line-clamp-1 flex items-center gap-1">
+                                                {item.title}
+                                                {isAdded && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" title="Adăugat deja" />}
+                                              </p>
                                               <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{item.type}</p>
                                             </div>
                                           </div>
@@ -1026,7 +1072,7 @@ export const Playlists = () => {
                                             </Button>
                                           </div>
                                         </div>
-                                      ))}
+                                      )})}
                                     </div>
                                   </details>
                                 );
