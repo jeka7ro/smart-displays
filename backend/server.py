@@ -462,8 +462,37 @@ async def delete_brand(brand_id: str, u=Depends(current_user)):
 
 @api.get("/screens/thumbnails")
 async def get_screen_thumbnails(u=Depends(current_user)):
-    # Returns a dict of { "slug": "base64_or_url" }. Empty for now.
-    return {}
+    screens = await DB.screens_list(u["org_id"])
+    result = {}
+    for s in screens:
+        zones = await DB.screen_zones_list(s["id"])
+        main_zone = next((z for z in zones if z["zone_id"] in ["main", "zone-1"]), None)
+        if not main_zone and zones:
+            main_zone = zones[0]
+            
+        if main_zone:
+            c_id = main_zone.get("content_id")
+            p_id = main_zone.get("playlist_id")
+            content = None
+            if c_id:
+                c = await DB._one("SELECT * FROM content WHERE id=$1", c_id)
+                if c: content = DB._row(c)
+            elif p_id:
+                p = await DB._one("SELECT * FROM playlists WHERE id=$1", p_id)
+                if p:
+                    p_row = DB._row(p)
+                    if p_row.get("items") and len(p_row["items"]) > 0:
+                        first_c_id = p_row["items"][0].get("content_id")
+                        if first_c_id:
+                            c = await DB._one("SELECT * FROM content WHERE id=$1", first_c_id)
+                            if c: content = DB._row(c)
+            if content:
+                url = content.get("thumbnail_url") or content.get("file_url")
+                result[s["slug"]] = {
+                    "url": url,
+                    "type": content.get("type", "image")
+                }
+    return result
 
 HARDCODED_TEMPLATES = [
     {
