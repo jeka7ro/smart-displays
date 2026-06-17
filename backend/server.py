@@ -78,13 +78,18 @@ security = HTTPBearer()
 async def upload_file(data: bytes, path: str, content_type: str) -> str:
     if s3:
         try:
-            s3.put_object(Bucket=R2_BUCKET, Key=path, Body=data, ContentType=content_type)
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,
+                lambda: s3.put_object(Bucket=R2_BUCKET, Key=path, Body=data, ContentType=content_type)
+            )
+            logger.info(f"✅ R2 upload OK: {path}")
             return f"{R2_PUBLIC_URL}/{path}"
         except Exception as e:
-            logger.warning(f"R2 upload failed, fallback: {e}")
+            logger.warning(f"R2 upload failed, fallback local: {e}")
     local = UPLOAD_DIR / path
     local.parent.mkdir(parents=True, exist_ok=True)
-    local.write_bytes(data)
+    await asyncio.get_event_loop().run_in_executor(None, lambda: local.write_bytes(data))
     return f"/uploads/{path}"
 
 
