@@ -298,6 +298,29 @@ async def me(u=Depends(current_user)):
 @api.post("/auth/onboarding")
 async def finish_onboarding(u=Depends(current_user)):
     await DB.pool.execute("UPDATE users SET is_onboarded = TRUE WHERE id = $1", u["id"])
+    
+    # --- SEND LEAD TO GOOGLE SHEETS ---
+    import httpx
+    try:
+        GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJdV1SxI2FCpZhmw8IjSYVneHSb_LaPG8t6VZhEsskYl11mLRObE7UAT9OLc9agxBunA/exec"
+        lead_data = {
+            "name": body.name,
+            "email": body.email,
+            "phone": body.phone if hasattr(body, "phone") and body.phone else "—",
+            "business": "Cont nou sd.getapp.ro",
+            "source": "Inregistrare backend SD"
+        }
+        # Post in background or synchronously. Since httpx.post is blocking if not using AsyncClient,
+        # we will use httpx.AsyncClient
+        import asyncio
+        async def send_lead():
+            async with httpx.AsyncClient() as client:
+                await client.post(GOOGLE_SCRIPT_URL, json=lead_data)
+        asyncio.create_task(send_lead())
+    except Exception as e:
+        print("Failed to send lead to Google Sheets:", e)
+    # ----------------------------------
+
     return {"ok": True}
 
 
@@ -999,6 +1022,128 @@ async def list_happy_hours(u=Depends(current_user)):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+
+from pydantic import BaseModel
+from typing import List, Optional
+import uuid
+
+class SyncGroupPost(BaseModel):
+    screen_ids: List[str]
+    sync_type: str
+    group_name: Optional[str] = None
+    fit_mode: Optional[str] = "cover"
+    content_id: Optional[str] = None
+    grid_cols: Optional[int] = None
+    grid_rows: Optional[int] = None
+
+class SyncGroupPut(BaseModel):
+    group_name: Optional[str] = None
+    content_id: Optional[str] = None
+    screen_ids: List[str]
+    sync_type: str
+    fit_mode: Optional[str] = "cover"
+    grid_cols: Optional[int] = None
+    grid_rows: Optional[int] = None
+
+@api.get("/screen-sync/groups")
+async def list_sync_groups(u=Depends(current_user)):
+    screens = await DB.screens_list(u["org_id"])
+    groups = {}
+    for s in screens:
+        g_id = s.get("sync_group")
+        if not g_id: continue
+        if g_id not in groups:
+            groups[g_id] = {
+                "id": g_id,
+                "name": s.get("sync_group_name") or "Grup Fara Nume",
+                "screen_count": 0,
+                "sync_type": s.get("sync_type", "simple"),
+                "fit_mode": s.get("sync_fit_mode", "cover"),
+                "screen_names": [],
+                "screen_ids": [],
+                "created_at": s.get("created_at"),
+                "created_by": "Admin"
+            }
+        groups[g_id]["screen_count"] += 1
+        groups[g_id]["screen_names"].append(s["name"])
+        groups[g_id]["screen_ids"].append(s["id"])
+    return list(groups.values())
+
+@api.post("/screen-sync")
+async def create_sync_group(body: SyncGroupPost, u=Depends(current_user)):
+    screens = await DB.screens_list(u["org_id"])
+    screen_map = {s["id"]: s for s in screens}
+    
+    group_id = str(uuid.uuid4())
+    sync_type = body.sync_type
+    if sync_type == "matrix" and body.grid_cols and body.grid_rows:
+        sync_type = f"matrix:{body.grid_cols}x{body.grid_rows}"
+        
+    # Update each screen
+    for i, sid in enumerate(body.screen_ids):
+        if sid in screen_map:
+            s = screen_map[sid]
+            s["sync_group"] = group_id
+            s["sync_group_name"] = body.group_name
+            s["sync_type"] = sync_type
+            s["sync_fit_mode"] = body.fit_mode
+            s["cascade_offset"] = i
+            await DB.screen_update(sid, u["org_id"], s)
+            
+            # If content_id is provided, we assign it to the screen's main zone
+            if body.content_id:
+                # Assuming 'main' zone
+                await DB.assign_content(sid, {"zone_name": "main", "content_id": body.content_id}, u)
+                
+    return {"ok": True, "group_id": group_id}
+
+@api.delete("/screen-sync/groups/{group_id}")
+async def delete_sync_group(group_id: str, u=Depends(current_user)):
+    screens = await DB.screens_list(u["org_id"])
+    for s in screens:
+        if s.get("sync_group") == group_id:
+            s["sync_group"] = None
+            s["sync_group_name"] = None
+            s["sync_type"] = "simple"
+            s["cascade_offset"] = 0
+            await DB.screen_update(s["id"], u["org_id"], s)
+    return {"ok": True}
+
+@api.put("/screen-sync/groups/{group_id}")
+async def update_sync_group(group_id: str, body: SyncGroupPut, u=Depends(current_user)):
+    screens = await DB.screens_list(u["org_id"])
+    screen_map = {s["id"]: s for s in screens}
+    
+    sync_type = body.sync_type
+    if sync_type == "matrix" and body.grid_cols and body.grid_rows:
+        sync_type = f"matrix:{body.grid_cols}x{body.grid_rows}"
+        
+    # First, clear the group from all screens that were previously in it
+    for s in screens:
+        if s.get("sync_group") == group_id and s["id"] not in body.screen_ids:
+            s["sync_group"] = None
+            s["sync_group_name"] = None
+            s["sync_type"] = "simple"
+            s["cascade_offset"] = 0
+            await DB.screen_update(s["id"], u["org_id"], s)
+            
+    # Then update the selected screens
+    for i, sid in enumerate(body.screen_ids):
+        if sid in screen_map:
+            s = screen_map[sid]
+            s["sync_group"] = group_id
+            s["sync_group_name"] = body.group_name
+            s["sync_type"] = sync_type
+            s["sync_fit_mode"] = body.fit_mode
+            s["cascade_offset"] = i
+            await DB.screen_update(sid, u["org_id"], s)
+            
+            if body.content_id:
+                await DB.assign_content(sid, {"zone_name": "main", "content_id": body.content_id}, u)
+                
+    return {"ok": True}
+
+
 # HEALTH
 # ══════════════════════════════════════════════════════════════════════════════
 
