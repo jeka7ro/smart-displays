@@ -122,7 +122,7 @@ export const Login = () => {
         <div className="bg-slate-950/60 backdrop-blur-3xl border border-slate-600/50 rounded-[2.5rem] p-8" style={{ boxShadow: '0 30px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.15), inset 0 2px 20px rgba(255,255,255,0.05)' }}>
           <div className="flex justify-center items-center pt-2 mb-8">
             <img 
-              src="/logo_cropped.png" 
+              src="/logo_cropped.png?v=3" 
               alt="Get App Smart Displays" 
               className="h-[60px] w-auto bg-white rounded-xl px-4 py-2 object-contain hover:scale-[1.02] transition-transform duration-300 shadow-lg"
             />

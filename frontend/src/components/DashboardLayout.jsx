@@ -99,7 +99,7 @@ export const DashboardLayout = ({ children }) => {
           <button onClick={() => setMobileMenuOpen(true)} className="p-2 -ml-2 text-white hover:bg-white/10 rounded-lg">
              <Menu className="w-6 h-6" />
           </button>
-          <img src="/logo_cropped.png" alt="GET App" className="h-[28px] bg-white rounded px-1 object-contain" />
+          <img src="/logo_cropped.png?v=3" alt="GET App" className="h-[28px] bg-white rounded px-1 object-contain" />
         </div>
         <div className="flex items-center gap-3">
            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-xs font-bold text-white uppercase shadow-inner cursor-pointer" onClick={handleLogout}>
@@ -128,7 +128,7 @@ export const DashboardLayout = ({ children }) => {
             ) : (
               <div className="animate-in fade-in duration-300 flex items-center justify-center w-full">
                   <img 
-                    src="/logo_cropped.png" 
+                    src="/logo_cropped.png?v=3" 
                     alt="GET App Smart Displays" 
                     className="h-[36px] w-auto object-contain transition-all hover:scale-105"
                   />
