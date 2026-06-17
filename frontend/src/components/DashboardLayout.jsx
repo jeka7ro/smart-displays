@@ -122,8 +122,8 @@ export const DashboardLayout = ({ children }) => {
         <div className={`px-2 border-b border-white/40 bg-transparent relative flex items-center ${isSidebarCollapsed ? 'md:justify-center' : ''} h-[72px] shrink-0`}>
           <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex items-center overflow-hidden w-full">
             {isSidebarCollapsed ? (
-              <div className="w-9 h-9 bg-slate-900 text-white font-black text-lg rounded-xl flex items-center justify-center shrink-0 mx-auto transition-all shadow-md shadow-slate-900/20">
-                G
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0 mx-auto transition-all shadow-sm">
+                <img src="/logo_icon.png" alt="Icon" className="w-8 h-8 object-contain" />
               </div>
             ) : (
               <div className="animate-in fade-in duration-300 flex items-center justify-center w-full">
