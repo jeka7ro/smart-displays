@@ -1452,14 +1452,6 @@ export const Content = () => {
                         </TabsContent>
                       </Tabs>
 
-                      <div className="flex gap-3 pt-4">
-                        <Button type="submit" disabled={uploading} className="btn-primary flex-1">
-                          {uploading ? 'Se încarcă...' : 'Adăugă'}
-                        </Button>
-                        <Button type="button" onClick={() => setShowDialog(false)} className="btn-secondary">
-                          Anulează
-                        </Button>
-                      </div>
                     </form>
                     </div>
                     <div className="shrink-0 pt-3 border-t border-slate-100">
