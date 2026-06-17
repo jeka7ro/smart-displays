@@ -126,7 +126,7 @@ export const DashboardLayout = ({ children }) => {
                 G
               </div>
             ) : (
-              <div className="animate-in fade-in duration-300 flex items-center w-full">
+              <div className="animate-in fade-in duration-300 flex items-center justify-center w-full">
                   <img 
                     src="/logo_cropped.png" 
                     alt="GET App Smart Displays" 
